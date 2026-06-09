@@ -1,0 +1,196 @@
+import {
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+
+import { useRouter } from 'expo-router';
+
+export default function RegisterScreen() {
+    const router = useRouter();
+    return (
+        <View style={styles.container}>
+            {/* Logo */}
+            <Image
+                source={require('../../assets/images/logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+            />
+
+            {/* Contenedor de textos */}
+            <View style={styles.textContainer}>
+                <Text style={styles.text}>Paso 1 de 2</Text>
+
+                <Text style={styles.title}>
+                    Crear cuenta
+                </Text>
+
+                <Text style={styles.description}>
+                    Completa tus datos para registrarte
+                </Text>
+            </View>
+
+            {/* Formulario */}
+            <View style={styles.formContainer}>
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Nombre</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Nombre completo"
+                    />
+                </View>
+
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Correo electrónico</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Correo electrónico"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                    />
+                </View>
+
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Contraseña</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Mínimo 8 caracteres"
+                        secureTextEntry
+                    />
+                </View>
+
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Confirmar contraseña</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Repetir contraseña"
+                        secureTextEntry
+                    />
+                </View>
+            </View>
+
+            {/* Botón y texto */}
+            <View style={styles.bottomContainer}>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => router.push('/register2')}
+                >
+                    <Text style={styles.buttonText}>Continuar</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.bottomText}>
+                    ¿Ya tenés una cuenta?{' '}
+                    <Text
+                        style={styles.loginLink}
+                        onPress={() => router.push('/login')}
+                    >
+                        Iniciar sesión
+                    </Text>
+                </Text>
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+        alignItems: 'center',
+    },
+
+    logo: {
+        width: '80%',
+        height: 180,
+        marginTop: 20,
+    },
+
+    textContainer: {
+        marginTop: 5, // logo → textos
+        alignItems: 'center',
+        width: '85%',
+    },
+
+    text: {
+        fontSize: 18,
+        fontWeight: 'medium',
+        color: '#000',
+        textAlign: 'center',
+    },
+
+    title: {
+        marginTop: 15, // distancia título → subtítulo
+        fontSize: 30, // más grande
+        fontWeight: 'bold',
+        color: '#000',
+        textAlign: 'center',
+    },
+
+    description: {
+        marginTop: 10, // distancia subtítulo → descripción
+        fontWeight: 'medium',
+        fontSize: 14,
+        color: '#7B8496',
+        textAlign: 'center',
+    },
+
+    formContainer: {
+        width: '85%',
+        marginTop: 25, // textos → formulario
+        gap: 16,
+    },
+
+    input: {
+        height: 43,
+        borderWidth: 1,
+        borderColor: '#D9D9D9',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        fontSize: 16,
+    },
+    inputGroup: {
+        marginBottom: 5,
+    },
+
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#000',
+        marginBottom: 8,
+    },
+
+    bottomContainer: {
+        width: '85%',
+        alignItems: 'center',
+        marginTop: 35, // formulario → botón/texto
+    },
+
+    button: {
+        width: '100%',
+        height: 56,
+        borderRadius: 15,
+        backgroundColor: '#1545F4',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
+    buttonText: {
+        color: '#FFFFFF',
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+
+    bottomText: {
+        marginTop: 20,
+        fontSize: 14,
+        color: '#000',
+        textAlign: 'center',
+    },
+    loginLink: {
+        color: '#1565FF',
+        fontWeight: '600',
+    },
+});
