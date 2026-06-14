@@ -1,9 +1,11 @@
 import { FontAwesome6 } from '@expo/vector-icons';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
 
+export default function HomeScreen() {
+    const router = useRouter();
     return (
         <SafeAreaView style={styles.container}>
             {/* Header */}
@@ -33,7 +35,9 @@ export default function HomeScreen() {
                 {/* Header horizontal */}
                 <View style={styles.bottomHeader}>
                     <Text style={styles.bottomTitle}>Mis entradas</Text>
-                    <Text style={styles.bottomAction}>Ver todos</Text>
+                    <TouchableOpacity onPress={() => router.push('/misEntradas')}>
+                        <Text style={styles.bottomAction}>Ver todos</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Item tipo ticket */}

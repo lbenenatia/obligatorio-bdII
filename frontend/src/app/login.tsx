@@ -8,9 +8,25 @@ import {
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 
 export default function LoginScreen() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const router = useRouter();
+    const iniciarSesion = () => {
+        if (email === 'funcionario@mundi26.com') {
+            router.replace('/funcionario/home');
+            return;
+        }
+
+        if (email === 'admin@mundi26.com') {
+            router.replace('/administrador/home');
+            return;
+        }
+
+        router.replace('/home');
+    };
     return (
         <View style={styles.container}>
             {/* Logo */}
@@ -38,6 +54,8 @@ export default function LoginScreen() {
                         placeholderTextColor="#B3B3B3"
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        value={email}
+                        onChangeText={setEmail}
                     />
                 </View>
 
@@ -48,6 +66,8 @@ export default function LoginScreen() {
                         placeholder="••••••••"
                         placeholderTextColor="#B3B3B3"
                         secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
                     />
                 </View>
             </View>
@@ -58,9 +78,11 @@ export default function LoginScreen() {
 
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => router.push('/home')}
+                    onPress={iniciarSesion}
                 >
-                    <Text style={styles.buttonText}>Iniciar sesión</Text>
+                    <Text style={styles.buttonText}>
+                        Iniciar sesión
+                    </Text>
                 </TouchableOpacity>
 
                 <Text style={styles.bottomText}>

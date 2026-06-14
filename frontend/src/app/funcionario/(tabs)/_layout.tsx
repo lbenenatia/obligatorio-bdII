@@ -33,12 +33,12 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="misEntradas"
+                name="estadios"
                 options={{
-                    title: 'Entradas',
+                    title: 'Estadios',
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons
-                            name="ticket-outline"
+                            name="business"
                             size={size}
                             color={color}
                         />
@@ -47,7 +47,7 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="tickets"
+                name="eventos"
                 options={{
                     title: 'Eventos',
                     tabBarIcon: ({ color, size }) => (
