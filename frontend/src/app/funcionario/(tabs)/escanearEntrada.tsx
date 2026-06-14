@@ -1,8 +1,12 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function EscanearEntrada() {
     const [permission, requestPermission] = useCameraPermissions();
+    const [scanned, setScanned] = useState(false);
+    const router = useRouter();
 
     if (!permission) {
         return <View style={styles.container} />;
@@ -33,8 +37,45 @@ export default function EscanearEntrada() {
                 <CameraView
                     style={styles.camera}
                     facing="back"
+                    onBarcodeScanned={({ data }) => {
+                        if (scanned) return;
+
+                        setScanned(true);
+
+                        let estado = 'valida';
+
+                        if (data === 'USADA') estado = 'usada';
+                        if (data === 'INVALIDA') estado = 'invalida';
+
+                        router.push({
+                            pathname: '../resultadoValidacion',
+                            params: {
+                                estado,
+                                codigo: data,
+                            },
+                        });
+                    }}
                 />
             </View>
+            <TouchableOpacity
+                style={{
+                    backgroundColor: 'white',
+                    padding: 15,
+                    marginTop: 20,
+                    borderRadius: 10,
+                }}
+                onPress={() =>
+                    router.push({
+                        pathname: '../resultadoValidacion',
+                        params: {
+                            estado: 'usada',
+                            codigo: 'TEST-123',
+                        },
+                    })
+                }
+            >
+                <Text>SIMULAR QR (TEST)</Text>
+            </TouchableOpacity>
         </View>
     );
 }
