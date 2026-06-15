@@ -1,13 +1,86 @@
+import { useCompras } from '@/context/ComprasContext';
 import { FontAwesome6 } from '@expo/vector-icons';
+import * as Print from 'expo-print';
 import { useRouter } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
-export default function PagoScreen() {
+export default function PagoAprobado() {
     const router = useRouter();
+    const { compras } = useCompras();
+    const ultimaCompra = compras[compras.length - 1];
+    const descargarPDF = async () => {
+        if (!ultimaCompra) return;
+
+        const qrValue = `ticket-${ultimaCompra.id}`;
+
+        const html = `
+    <html>
+      <body style="margin:0; padding:0; background:#051F3B; font-family:Arial;">
+
+        <div style="
+          display:flex;
+          justify-content:center;
+          padding-top:60px;
+        ">
+
+          <!-- CARD -->
+          <div style="
+            width:320px;
+            background:#fff;
+            border-radius:25px;
+            overflow:hidden;
+            text-align:center;
+          ">
+
+            <!-- CONTENIDO -->
+            <div style="padding:0 20px 20px 20px;">
+
+              <h2 style="font-size:18px; margin:10px 0;">
+                ${ultimaCompra.match}
+              </h2>
+
+              <p style="font-size:14px; margin:5px 0; color:#444;">
+                ${ultimaCompra.date} • ${ultimaCompra.time}
+              </p>
+
+              <p style="font-size:14px; margin:5px 0; color:#444;">
+                Estadio: ${ultimaCompra.estadio}
+              </p>
+
+              <p style="font-size:14px; margin:5px 0; color:#444;">
+                Sector ${ultimaCompra.sector} • Entradas ${ultimaCompra.cantidad}
+              </p>
+
+              <hr style="margin:15px 0;" />
+
+              <!-- QR -->
+              <div style="margin:15px 0;">
+                <img 
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${qrValue}"
+                />
+              </div>
+
+              <p style="font-size:11px; color:#777;">
+                Entrada oficial - QR válido para ingreso
+              </p>
+
+            </div>
+          </div>
+
+        </div>
+      </body>
+    </html>
+    `;
+
+        const { uri } = await Print.printToFileAsync({
+            html,
+        });
+
+        await Sharing.shareAsync(uri);
+    };
     return (
         <View style={styles.container}>
-            {/* COMPONENTE 1 - CONFIRMACIÓN */}
             <View style={styles.successContainer}>
                 <View style={styles.iconContainer}>
                     <FontAwesome6
@@ -26,10 +99,23 @@ export default function PagoScreen() {
                 </Text>
             </View>
 
-            {/* COMPONENTE 2 - ACCIONES */}
             <View style={styles.actionsContainer}>
                 <TouchableOpacity style={styles.primaryButton}
-                    onPress={() => router.push('/home')}>
+                    onPress={() => {
+                        if (!ultimaCompra) return;
+
+                        router.push({
+                            pathname: '/misEntradas',
+                            params: {
+                                match: ultimaCompra.match,
+                                date: ultimaCompra.date,
+                                time: ultimaCompra.time,
+                                estadio: ultimaCompra.estadio,
+                                sector: ultimaCompra.sector,
+                                cantidad: ultimaCompra.cantidad,
+                            },
+                        });
+                    }}>
                     <Text style={styles.primaryButtonText}>
                         Ver mis entradas
                     </Text>
@@ -43,10 +129,26 @@ export default function PagoScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* COMPONENTE 3 - FOOTER */}
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.footerButton}
-                    onPress={() => router.push('/transfer')}>
+                <TouchableOpacity
+                    style={styles.footerButton}
+                    onPress={() => {
+                        if (!ultimaCompra) return;
+
+                        router.push({
+                            pathname: '/transfer',
+                            params: {
+                                id: ultimaCompra.id,
+                                match: ultimaCompra.match,
+                                date: ultimaCompra.date,
+                                time: ultimaCompra.time,
+                                estadio: ultimaCompra.estadio,
+                                sector: ultimaCompra.sector,
+                                cantidad: ultimaCompra.cantidad,
+                            },
+                        });
+                    }}
+                >
                     <FontAwesome6
                         name="share-nodes"
                         size={18}
@@ -58,7 +160,10 @@ export default function PagoScreen() {
                     </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.footerButton}>
+                <TouchableOpacity
+                    style={styles.footerButton}
+                    onPress={descargarPDF}
+                >
                     <Text style={styles.footerButtonText}>
                         Descargar
                     </Text>
@@ -80,8 +185,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         paddingVertical: 40,
     },
-
-    /* COMPONENTE 1 */
 
     successContainer: {
         alignItems: 'center',
@@ -112,8 +215,6 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         textAlign: 'center',
     },
-
-    /* COMPONENTE 2 */
 
     actionsContainer: {
         alignItems: 'center',
@@ -148,8 +249,6 @@ const styles = StyleSheet.create({
         fontSize: 25,
         fontWeight: 'regular',
     },
-
-    /* COMPONENTE 3 */
 
     footer: {
         position: 'absolute',

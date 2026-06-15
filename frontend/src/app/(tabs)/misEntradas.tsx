@@ -5,19 +5,39 @@ import {
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
 
+import { useCompras } from '@/context/ComprasContext';
+import { getUsuarioLogueado } from '../../data/sesion';
 
 export default function MisEntradas() {
-    const [tab, setTab] = useState('proximos');
+    const [tab, setTab] = useState<'proximos' | 'historial'>('proximos');
+    const usuario = getUsuarioLogueado();
+    const { compras } = useCompras();
     const router = useRouter();
+
+    // Convertimos compras → entradas (SIN cambiar estética)
+    const entradas = compras
+        .filter(c => c.usuarioId === usuario?.id)
+        .map(c => ({
+            id: c.id,
+            equipoLocal: c.match.split(' vs ')[0],
+            equipoVisitante: c.match.split(' vs ')[1],
+            fecha: c.date,
+            time: c.time,
+            estadio: c.estadio,
+            sector: c.sector,
+            asiento: `${c.sector}-${c.id.slice(-3)}`,
+            estado: 'ACTIVA',
+        }));
+
+    const entradasActivas = entradas.filter(e => e.estado === 'ACTIVA');
+    const entradasUsadas = entradas.filter(e => e.estado === 'USADA');
+
     return (
         <View style={styles.container}>
-            {/* HEADER */}
             <View style={styles.header}>
-                <Text style={styles.logo}>⚽ MUNDI26</Text>
-
                 <Text style={styles.title}>Mis entradas</Text>
 
                 <Text style={styles.subtitle}>
@@ -25,13 +45,9 @@ export default function MisEntradas() {
                 </Text>
             </View>
 
-            {/* TABS */}
             <View style={styles.tabsContainer}>
                 <TouchableOpacity
-                    style={[
-                        styles.tab,
-                        tab === 'proximos' && styles.activeTab,
-                    ]}
+                    style={[styles.tab, tab === 'proximos' && styles.activeTab]}
                     onPress={() => setTab('proximos')}
                 >
                     <Text
@@ -45,10 +61,7 @@ export default function MisEntradas() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[
-                        styles.tab,
-                        tab === 'historial' && styles.activeTab,
-                    ]}
+                    style={[styles.tab, tab === 'historial' && styles.activeTab]}
                     onPress={() => setTab('historial')}
                 >
                     <Text
@@ -62,156 +75,87 @@ export default function MisEntradas() {
                 </TouchableOpacity>
             </View>
 
-            {/* CONTENIDO */}
-            <ScrollView
-                style={styles.content}
-                showsVerticalScrollIndicator={false}
-            >
-                {tab === 'proximos' ? (
-                    <>
-                        <View style={styles.resumeCard}>
-                            <Text style={styles.resumeTitle}>
-                                🎟️ 3 entradas activas
-                            </Text>
-                            <Text style={styles.resumeSubtitle}>
-                                Disponibles para tus próximos eventos.
-                            </Text>
-                        </View>
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
 
-                        <TouchableOpacity
-                            style={styles.ticketCard}
-                            activeOpacity={0.7}
-                            onPress={() => {
-                                console.log('CLICK');
-                                router.push('/entrada');
-                            }}
-                        >
-                            <View style={styles.cardHeader}>
-                                <Text style={styles.badge}>
-                                    PRÓXIMO
+                {tab === 'proximos' &&
+                    (entradasActivas.length === 0 ? (
+                        <Text style={styles.emptyText}>
+                            No tienes entradas próximas
+                        </Text>
+                    ) : (
+                        entradasActivas.map(e => (
+                            <TouchableOpacity
+                                key={e.id}
+                                style={styles.ticketCard}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/entrada',
+                                        params: {
+                                            id: e.id.toString(),
+                                            equipoLocal: e.equipoLocal,
+                                            equipoVisitante: e.equipoVisitante,
+                                            fecha: e.fecha,
+                                            time: e.time,
+                                            estadio: e.estadio,
+                                            sector: e.sector,
+                                            asiento: e.asiento,
+                                        },
+                                    })
+                                }
+                            >
+                                <View style={styles.cardHeader}>
+                                    <Text style={styles.badge}>PRÓXIMO</Text>
+                                </View>
+
+                                <Text style={styles.matchTitle}>
+                                    {e.equipoLocal} vs {e.equipoVisitante}
                                 </Text>
-                            </View>
 
-                            <Text style={styles.matchTitle}>
-                                Uruguay vs Brasil
-                            </Text>
+                                <Text style={styles.info}>📅 {e.fecha}</Text>
+                                <Text style={styles.info}>🕒 {e.time}</Text>
+                                <Text style={styles.info}>📍 {e.estadio}</Text>
 
-                            <Text style={styles.info}>
-                                📅 28/06/2026 • 16:00
-                            </Text>
+                                <View style={styles.bottomRow}>
+                                    <View style={styles.status}>
+                                        <Text style={styles.statusText}>Activa</Text>
+                                    </View>
 
-                            <Text style={styles.info}>
-                                📍 Estadio Centenario
-                            </Text>
-
-                            <View style={styles.bottomRow}>
-                                <View style={styles.status}>
-                                    <Text style={styles.statusText}>
-                                        Activa
-                                    </Text>
+                                    <Text style={styles.arrow}>›</Text>
                                 </View>
-
-                                <Text style={styles.arrow}>›</Text>
-                            </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.ticketCard}
-                            onPress={() => router.push('/entrada')}>
-                            <View style={styles.cardHeader}>
-                                <Text style={styles.badge}>
-                                    PRÓXIMO
+                            </TouchableOpacity>
+                        ))
+                    ))}
+                {tab === 'historial' &&
+                    (entradasUsadas.length === 0 ? (
+                        <Text style={styles.emptyText}>
+                            No tienes entradas usadas
+                        </Text>
+                    ) : (
+                        entradasUsadas.map(e => (
+                            <TouchableOpacity key={e.id} style={styles.ticketCard}>
+                                <Text style={styles.matchTitle}>
+                                    {e.equipoLocal} vs {e.equipoVisitante}
                                 </Text>
-                            </View>
 
-                            <Text style={styles.matchTitle}>
-                                España vs Argentina
-                            </Text>
+                                <Text style={styles.info}>📅 {e.fecha}</Text>
+                                <Text style={styles.info}>🕒 {e.time}</Text>
+                                <Text style={styles.info}>📍 {e.estadio}</Text>
 
-                            <Text style={styles.info}>
-                                📅 21/06/2026 • 18:00
-                            </Text>
-
-                            <Text style={styles.info}>
-                                📍 Estadio BBVA
-                            </Text>
-
-                            <View style={styles.bottomRow}>
-                                <View style={styles.status}>
-                                    <Text style={styles.statusText}>
-                                        Activa
-                                    </Text>
+                                <View style={styles.bottomRow}>
+                                    <View style={[styles.status, styles.usedStatus]}>
+                                        <Text
+                                            style={[
+                                                styles.statusText,
+                                                styles.usedStatusText,
+                                            ]}
+                                        >
+                                            Utilizada
+                                        </Text>
+                                    </View>
                                 </View>
-
-                                <Text style={styles.arrow}>›</Text>
-                            </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.ticketCard}
-                            onPress={() => router.push('/entrada')}>
-                            <View style={styles.cardHeader}>
-                                <Text style={styles.badge}>
-                                    PRÓXIMO
-                                </Text>
-                            </View>
-
-                            <Text style={styles.matchTitle}>
-                                México vs Sudáfrica
-                            </Text>
-
-                            <Text style={styles.info}>
-                                📅 11/06/2026 • 20:00
-                            </Text>
-
-                            <Text style={styles.info}>
-                                📍 Estadio Azteca
-                            </Text>
-
-                            <View style={styles.bottomRow}>
-                                <View style={styles.status}>
-                                    <Text style={styles.statusText}>
-                                        Activa
-                                    </Text>
-                                </View>
-
-                                <Text style={styles.arrow}>›</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </>
-                ) : (
-                    <>
-                        <TouchableOpacity style={styles.ticketCard}>
-                            <Text style={styles.matchTitle}>
-                                Francia vs Alemania
-                            </Text>
-
-                            <Text style={styles.info}>
-                                📅 01/05/2026 • 17:00
-                            </Text>
-
-                            <Text style={styles.info}>
-                                📍 Stade de France
-                            </Text>
-
-                            <View style={styles.bottomRow}>
-                                <View
-                                    style={[
-                                        styles.status,
-                                        styles.usedStatus,
-                                    ]}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.statusText,
-                                            styles.usedStatusText,
-                                        ]}
-                                    >
-                                        Utilizada
-                                    </Text>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    </>
-                )}
+                            </TouchableOpacity>
+                        ))
+                    ))}
             </ScrollView>
         </View>
     );
@@ -234,9 +178,9 @@ const styles = StyleSheet.create({
 
     logo: {
         color: '#FFFFFF',
-        fontSize: 24,
+        width: 150,
+        height: 150,
         fontWeight: 'bold',
-        marginBottom: 30,
     },
 
     title: {
@@ -287,24 +231,6 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 20,
         marginTop: 20,
-    },
-
-    resumeCard: {
-        backgroundColor: '#EAF2FF',
-        padding: 18,
-        borderRadius: 18,
-        marginBottom: 18,
-    },
-
-    resumeTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#001B54',
-    },
-
-    resumeSubtitle: {
-        color: '#4B5563',
-        marginTop: 4,
     },
 
     ticketCard: {
@@ -378,5 +304,12 @@ const styles = StyleSheet.create({
         fontSize: 30,
         color: '#001B54',
         fontWeight: '300',
+    },
+    emptyText: {
+        color: '#fff',
+        textAlign: 'center',
+        marginTop: 40,
+        fontSize: 16,
+        opacity: 0.7,
     },
 });

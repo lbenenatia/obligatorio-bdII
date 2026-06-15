@@ -1,86 +1,119 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+type Sector = {
+    id: 'A' | 'B';
+    precio: number;
+    disponibles: number;
+};
+
+const sectores: Sector[] = [
+    { id: 'A', precio: 150, disponibles: 45 },
+    { id: 'B', precio: 200, disponibles: 30 },
+];
 
 export default function CompraScreen() {
     const router = useRouter();
+
+    const {
+        id,
+        match,
+        date,
+        time,
+        estadio, // 👈 IMPORTANTE: ahora sí lo recibimos
+    } = useLocalSearchParams();
+
     const [cantidad, setCantidad] = useState(1);
-    const [sectorSeleccionado, setSectorSeleccionado] = useState<'A' | 'B'>('B');
+    const [sectorSeleccionado, setSectorSeleccionado] = useState<'A' | 'B'>('A');
+
+    const sector = sectores.find(s => s.id === sectorSeleccionado)!;
+
+    const total = useMemo(() => {
+        return cantidad * sector.precio;
+    }, [cantidad, sector]);
+
+    const maxDisponibles = sector.disponibles;
+
+    const aumentar = () => {
+        if (cantidad < maxDisponibles) {
+            setCantidad(prev => prev + 1);
+        }
+    };
+
+    const disminuir = () => {
+        setCantidad(prev => Math.max(1, prev - 1));
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.imageContainer}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
+
                 <Image
                     source={require('../../assets/images/estadio.png')}
                     style={styles.image}
                     resizeMode="cover"
                 />
             </View>
+
             <View style={styles.content}>
-                <Text style={styles.title}>México vs Sudáfrica</Text>
-                <Text style={styles.subtitle}>11 JUN - 16:00</Text>
-                <Text style={styles.subtitle}>Estadio Banorte</Text>
+                <Text style={styles.title}>{match}</Text>
+                <Text style={styles.subtitle}>{date}</Text>
+                <Text style={styles.subtitle}>{time} - {estadio}</Text>
             </View>
+
             <View style={styles.optionsContainer}>
-                <TouchableOpacity
-                    style={[
-                        styles.optionCard,
-                        sectorSeleccionado === 'A'
-                            ? styles.optionCardSelected
-                            : styles.optionCardInactive,
-                    ]}
-                    onPress={() => setSectorSeleccionado('A')}
-                >
-                    <View style={styles.radioContainer}>
-                        <View
-                            style={[
-                                styles.radio,
-                                sectorSeleccionado === 'A'
-                                    ? styles.radioSelected
-                                    : styles.radioInactive,
-                            ]}
-                        />
-                    </View>
+                {sectores.map((s) => (
+                    <TouchableOpacity
+                        key={s.id}
+                        style={[
+                            styles.optionCard,
+                            sectorSeleccionado === s.id
+                                ? styles.optionCardSelected
+                                : styles.optionCardInactive,
+                        ]}
+                        onPress={() => {
+                            setSectorSeleccionado(s.id);
+                            setCantidad(1);
+                        }}
+                    >
+                        <View style={styles.radioContainer}>
+                            <View
+                                style={[
+                                    styles.radio,
+                                    sectorSeleccionado === s.id
+                                        ? styles.radioSelected
+                                        : styles.radioInactive,
+                                ]}
+                            />
+                        </View>
 
-                    <View style={styles.optionTextContainer}>
-                        <Text style={styles.optionTitle}>Sector A</Text>
-                        <Text style={styles.optionSubtitle}>USD 150</Text>
-                    </View>
+                        <View style={styles.optionTextContainer}>
+                            <Text style={styles.optionTitle}>
+                                Sector {s.id}
+                            </Text>
+                            <Text style={styles.optionSubtitle}>
+                                USD {s.precio}
+                            </Text>
+                        </View>
 
-                    <Text style={styles.optionPrice}>Quedan 45</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[
-                        styles.optionCard,
-                        sectorSeleccionado === 'B'
-                            ? styles.optionCardSelected
-                            : styles.optionCardInactive,
-                    ]}
-                    onPress={() => setSectorSeleccionado('B')}
-                >
-                    <View style={styles.radioContainer}>
-                        <View
-                            style={[
-                                styles.radio,
-                                sectorSeleccionado === 'B'
-                                    ? styles.radioSelected
-                                    : styles.radioInactive,
-                            ]}
-                        />
-                    </View>
-
-                    <View style={styles.optionTextContainer}>
-                        <Text style={styles.optionTitle}>Sector B</Text>
-                        <Text style={styles.optionSubtitle}>USD 200</Text>
-                    </View>
-
-                    <Text style={styles.optionPrice}>Quedan 30</Text>
-                </TouchableOpacity>
+                        <Text style={styles.optionPrice}>
+                            Quedan {s.disponibles}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
+
             <View style={styles.counterContainer}>
                 <TouchableOpacity
                     style={styles.counterButton}
-                    onPress={() => setCantidad(Math.max(0, cantidad - 1))}
+                    onPress={disminuir}
                 >
                     <Text style={styles.counterButtonText}>−</Text>
                 </TouchableOpacity>
@@ -89,34 +122,71 @@ export default function CompraScreen() {
 
                 <TouchableOpacity
                     style={styles.counterButton}
-                    onPress={() => setCantidad(cantidad + 1)}
+                    onPress={aumentar}
                 >
                     <Text style={styles.counterButtonText}>+</Text>
                 </TouchableOpacity>
             </View>
+
             <View style={styles.summaryCard}>
                 <Text style={styles.summaryText}>
-                    Sub Total:{' '}
+                    Sub Total:{" "}
                     <Text style={styles.summaryTextBold}>
-                        USD {cantidad * 200}
+                        USD {total}
                     </Text>
                 </Text>
 
-                <TouchableOpacity style={styles.summaryButton}>
-                    <Text style={styles.summaryButtonText}
-                        onPress={() => router.push('/pago')}>
-                        Continuar compra</Text>
+                <TouchableOpacity
+                    style={styles.summaryButton}
+                    onPress={() =>
+                        router.push({
+                            pathname: '/pago',
+                            params: {
+                                id: String(id ?? ''),
+                                match: String(match ?? ''),
+                                date: String(date ?? ''),
+                                time: String(time ?? ''),
+                                estadio: String(estadio ?? ''),
+                                sector: sectorSeleccionado,
+                                cantidad: String(cantidad),
+                                precio: String(sector.precio),
+                            },
+                        })
+                    }
+                >
+                    <Text style={styles.summaryButtonText}>
+                        Continuar compra
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#ffffff',
     },
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: 15,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.4)', 
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    backText: {
+        color: '#FFFFFF',
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginTop: -2,
+    },
+
     imageContainer: {
         width: '100%',
         backgroundColor: '#0C437B',
@@ -130,12 +200,12 @@ const styles = StyleSheet.create({
     content: {
         padding: 20,
         gap: 12,
-        alignItems: 'center', // centra el bloque de contenido
-        marginTop: 17, // superpone el bloque sobre la imagen
+        alignItems: 'center', 
+        marginTop: 17,
     },
 
     title: {
-        width: '90%', // ancho del bloque de texto
+        width: '90%', 
         color: '#000',
         fontSize: 30,
         fontWeight: 'bold',
@@ -147,7 +217,7 @@ const styles = StyleSheet.create({
         color: '#000',
         fontSize: 20,
         textAlign: 'left',
-        marginTop: -6, // ajusta fino para acercar los textos
+        marginTop: -6, 
     },
     optionsContainer: {
         marginTop: -10,
@@ -161,18 +231,18 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 5,
         borderWidth: 2,
     },
 
     optionCardSelected: {
-        backgroundColor: 'rgba(50, 93, 233, 0.3)', // #325DE9 al 30%
-        borderColor: 'rgba(0, 12, 246, 0.4)', // #000CF6 al 40%
+        backgroundColor: 'rgba(50, 93, 233, 0.3)', 
+        borderColor: 'rgba(0, 12, 246, 0.4)',
     },
 
     optionCardInactive: {
-        backgroundColor: 'rgba(185, 191, 210, 0.3)', // #B9BFD2 al 30%
-        borderColor: 'rgba(68, 68, 69, 0.4)', // #444445 al 40%
+        backgroundColor: 'rgba(185, 191, 210, 0.3)',
+        borderColor: 'rgba(68, 68, 69, 0.4)',
     },
 
     radioContainer: {
@@ -235,7 +305,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.3)', // borde al 30%
+        borderColor: 'rgba(0, 0, 0, 0.3)', 
     },
 
     counterButtonText: {
@@ -257,7 +327,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1958D0',
         borderRadius: 20,
 
-        marginTop: 20,
+        marginTop: 15,
 
         justifyContent: 'center',
         alignItems: 'center',

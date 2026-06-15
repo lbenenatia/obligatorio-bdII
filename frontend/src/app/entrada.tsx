@@ -1,47 +1,69 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import {
-    Image,
-    StyleSheet, Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
+type EntradaParams = {
+    id: string;
+    equipoLocal: string;
+    equipoVisitante: string;
+    fecha: string;
+    time: string;
+    estadio: string;
+    sector?: string;
+    asiento?: string;
+};
 
-export default function Transfer() {
+export default function EntradaScreen() {
+    const router = useRouter();
+
+    const {
+        id,
+        equipoLocal,
+        equipoVisitante,
+        fecha,
+        time,
+        estadio,
+        sector,
+        asiento,
+    } = useLocalSearchParams<EntradaParams>();
+
     const [seconds, setSeconds] = useState(30);
-    const [qrValue, setQrValue] = useState(`ticket-${Date.now()}`);
+    const [qrValue, setQrValue] = useState(`ticket-${id}-${Date.now()}`);
 
     const generarNuevoQR = () => {
-        setQrValue(`ticket-${Date.now()}`);
+        setQrValue(`ticket-${id}-${Date.now()}`);
     };
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setSeconds((prev) => {
+            setSeconds(prev => {
                 if (prev <= 1) {
                     generarNuevoQR();
                     return 30;
                 }
-
                 return prev - 1;
             });
         }, 1000);
 
         return () => clearInterval(interval);
-    }, []);
-    const router = useRouter();
+    }, [id]);
+
     return (
         <View style={styles.container}>
-            {/* LOGO PRINCIPAL */}
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Text style={styles.backText}>‹</Text>
+            </TouchableOpacity>
+            {/* LOGO */}
             <Image
                 source={require('../../assets/images/logo_blanco.png')}
                 style={styles.logo}
                 resizeMode="contain"
             />
 
-            {/* TARJETA */}
             <View style={styles.mainCard}>
                 <Image
                     source={require('../../assets/images/logo.png')}
@@ -51,20 +73,19 @@ export default function Transfer() {
 
                 <View style={styles.contentContainer}>
                     <Text style={styles.title}>
-                        México vs Sudáfrica
+                        {equipoLocal} vs {equipoVisitante}
                     </Text>
 
                     <Text style={styles.subtitle}>
-                        11 JUN - 16:00 • Sector A, Asiento 15
+                        {fecha} • {time}
+                        {sector ? ` • Sector ${sector}` : ''}
+                        {asiento ? `, Asiento ${asiento}` : ''}
                     </Text>
 
                     <View style={styles.divider} />
 
                     <View style={styles.qrContainer}>
-                        <QRCode
-                            value={qrValue}
-                            size={99}
-                        />
+                        <QRCode value={qrValue} size={110} />
                     </View>
 
                     <View style={styles.timerContainer}>
@@ -79,10 +100,24 @@ export default function Transfer() {
                     </View>
                 </View>
             </View>
+
             <View style={styles.buttonsContainer}>
                 <TouchableOpacity
                     style={styles.primaryButton}
-                    onPress={() => router.push('/transfer')}
+                    onPress={() =>
+                        router.push({
+                            pathname: '/transfer',
+                            params: {
+                                id: id,
+                                match: `${equipoLocal} vs ${equipoVisitante}`,
+                                date: fecha,
+                                time: time,
+                                estadio: estadio,
+                                sector: sector,
+                                cantidad: asiento,
+                            },
+                        })
+                    }
                 >
                     <Text style={styles.primaryButtonText}>
                         Transferir entrada
@@ -108,6 +143,26 @@ const styles = StyleSheet.create({
         backgroundColor: '#051F3B',
         alignItems: 'center',
         justifyContent: 'center',
+        paddingTop: 40,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 60,
+        left: 20,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    backText: {
+        color: '#FFFFFF',
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginTop: -2,
     },
 
     logo: {
@@ -122,28 +177,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderRadius: 30,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
         elevation: 8,
     },
 
     cardLogo: {
-        width: 166,
-        height: 57,
+        width: 160,
+        height: 55,
         position: 'absolute',
         top: 15,
     },
+
     contentContainer: {
         width: '100%',
         alignItems: 'center',
         marginTop: 80,
         paddingHorizontal: 35,
     },
+
     title: {
         fontSize: 22,
         fontWeight: 'bold',
@@ -165,10 +215,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#BDBDBD',
         marginBottom: 12,
     },
+
     qrContainer: {
-        justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 4,
+        justifyContent: 'center',
     },
 
     timerContainer: {
@@ -178,26 +228,25 @@ const styles = StyleSheet.create({
     },
 
     refreshIcon: {
-        fontSize: 26,
-        color: '#000',
-        marginRight: 10,
+        fontSize: 22,
+        marginRight: 8,
     },
 
     timerText: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#000',
     },
 
     timerBold: {
         fontWeight: 'bold',
     },
+
     buttonsContainer: {
         width: '90%',
         marginTop: 25,
     },
 
     primaryButton: {
-        width: '100%',
         height: 55,
         backgroundColor: '#1958D0',
         borderRadius: 16,
@@ -213,17 +262,16 @@ const styles = StyleSheet.create({
     },
 
     secondaryButton: {
-        width: '100%',
         height: 55,
         borderWidth: 2,
-        borderColor: '#ffffff',
+        borderColor: '#fff',
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
     },
 
     secondaryButtonText: {
-        color: '#ffffff‰',
+        color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
     },

@@ -8,19 +8,71 @@ import {
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert } from 'react-native';
 
 export default function RegisterScreen() {
+    const [nombre, setNombre] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const router = useRouter();
+    const emailValido = /\S+@\S+\.\S+/;
+    const continuar = () => {
+        if (
+            !nombre.trim() ||
+            !email.trim() ||
+            !password.trim() ||
+            !confirmPassword.trim()
+        ) {
+            Alert.alert(
+                'Campos incompletos',
+                'Debes completar todos los campos'
+            );
+            return;
+        }
+        
+        if (!emailValido.test(email)) {
+            Alert.alert(
+                'Correo inválido',
+                'Ingresá un correo electrónico válido'
+            );
+            return;
+        }
+
+        if (password.length < 8) {
+            Alert.alert(
+                'Contraseña inválida',
+                'La contraseña debe tener al menos 8 caracteres'
+            );
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert(
+                'Error',
+                'Las contraseñas no coinciden'
+            );
+            return;
+        }
+
+        router.push({
+            pathname: '/register2',
+            params: {
+                nombre,
+                email,
+                password,
+            },
+        });
+    };
     return (
         <View style={styles.container}>
-            {/* Logo */}
             <Image
                 source={require('../../assets/images/logo.png')}
                 style={styles.logo}
                 resizeMode="contain"
             />
 
-            {/* Contenedor de textos */}
             <View style={styles.textContainer}>
                 <Text style={styles.text}>Paso 1 de 2</Text>
 
@@ -33,13 +85,14 @@ export default function RegisterScreen() {
                 </Text>
             </View>
 
-            {/* Formulario */}
             <View style={styles.formContainer}>
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Nombre</Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Nombre completo"
+                        value={nombre}
+                        onChangeText={setNombre}
                     />
                 </View>
 
@@ -50,6 +103,8 @@ export default function RegisterScreen() {
                         placeholder="Correo electrónico"
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        value={email}
+                        onChangeText={setEmail}
                     />
                 </View>
 
@@ -59,6 +114,8 @@ export default function RegisterScreen() {
                         style={styles.input}
                         placeholder="Mínimo 8 caracteres"
                         secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
                     />
                 </View>
 
@@ -68,15 +125,16 @@ export default function RegisterScreen() {
                         style={styles.input}
                         placeholder="Repetir contraseña"
                         secureTextEntry
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
                     />
                 </View>
             </View>
 
-            {/* Botón y texto */}
             <View style={styles.bottomContainer}>
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => router.push('/register2')}
+                    onPress={continuar}
                 >
                     <Text style={styles.buttonText}>Continuar</Text>
                 </TouchableOpacity>
@@ -109,7 +167,7 @@ const styles = StyleSheet.create({
     },
 
     textContainer: {
-        marginTop: 5, // logo → textos
+        marginTop: 5, 
         alignItems: 'center',
         width: '85%',
     },
@@ -122,15 +180,15 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        marginTop: 15, // distancia título → subtítulo
-        fontSize: 30, // más grande
+        marginTop: 15, 
+        fontSize: 30, 
         fontWeight: 'bold',
         color: '#000',
         textAlign: 'center',
     },
 
     description: {
-        marginTop: 10, // distancia subtítulo → descripción
+        marginTop: 10, 
         fontWeight: 'medium',
         fontSize: 14,
         color: '#7B8496',
@@ -139,7 +197,7 @@ const styles = StyleSheet.create({
 
     formContainer: {
         width: '85%',
-        marginTop: 25, // textos → formulario
+        marginTop: 25, 
         gap: 16,
     },
 
@@ -165,7 +223,7 @@ const styles = StyleSheet.create({
     bottomContainer: {
         width: '85%',
         alignItems: 'center',
-        marginTop: 35, // formulario → botón/texto
+        marginTop: 35, 
     },
 
     button: {

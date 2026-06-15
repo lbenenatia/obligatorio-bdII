@@ -1,4 +1,6 @@
-import { useRouter } from 'expo-router';
+import { useCompras } from '@/context/ComprasContext';
+import { usuariosMock } from '@/data/usuarios';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
     Image, ScrollView, StyleSheet, Text, TextInput,
@@ -6,15 +8,32 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
-
 export default function Transfer() {
     const [seconds, setSeconds] = useState(30);
     const [qrValue, setQrValue] = useState(`ticket-${Date.now()}`);
+    const [query, setQuery] = useState('');
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const { transferirCompra } = useCompras();
+    const {
+        id,
+        match,
+        date,
+        time,
+        estadio,
+        sector,
+        cantidad,
+    } = useLocalSearchParams();
 
     const generarNuevoQR = () => {
         setQrValue(`ticket-${Date.now()}`);
     };
 
+    const resultados = usuariosMock.filter(
+        u =>
+            u.email.toLowerCase().includes(query.toLowerCase()) &&
+            u.id !== 1
+    );
     useEffect(() => {
         const interval = setInterval(() => {
             setSeconds((prev) => {
@@ -30,16 +49,30 @@ export default function Transfer() {
         return () => clearInterval(interval);
     }, []);
     const router = useRouter();
+    const confirmarTransferencia = () => {
+        if (!selectedUser) return;
+
+        transferirCompra(
+            String(id),
+            selectedUser.id
+        );
+
+        router.push('/transferenciaAprobada');
+    };
     return (
         <View style={styles.container}>
-            {/* LOGO PRINCIPAL */}
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Text style={styles.backText}>‹</Text>
+            </TouchableOpacity>
             <Image
                 source={require('../../assets/images/logo_blanco.png')}
                 style={styles.logo}
                 resizeMode="contain"
             />
 
-            {/* TARJETA */}
             <View style={styles.mainCard}>
                 <Image
                     source={require('../../assets/images/logo.png')}
@@ -49,11 +82,11 @@ export default function Transfer() {
 
                 <View style={styles.contentContainer}>
                     <Text style={styles.title}>
-                        México vs Sudáfrica
+                        {match}
                     </Text>
 
                     <Text style={styles.subtitle}>
-                        11 JUN - 16:00 • Sector A, Asiento 15
+                        {date} - {time} • Sector {sector}, Entradas: {cantidad}
                     </Text>
 
                     <View style={styles.divider} />
@@ -83,8 +116,9 @@ export default function Transfer() {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
                         alignItems: 'center',
-                        paddingBottom: 100,
-                    }}>
+                        paddingBottom: 30, 
+                    }}
+                >
                     <View style={styles.headerTextContainer}>
                         <Text style={styles.mainTitle}>
                             Transferir entrada
@@ -107,39 +141,77 @@ export default function Transfer() {
                             placeholder="ejemplo@correo.com"
                             placeholderTextColor="#999"
                             style={styles.searchInput}
+                            value={query}
+                            editable={!selectedUser}
+                            onChangeText={(text) => {
+                                setQuery(text);
+                                setShowDropdown(true);
+                            }}
                         />
                     </View>
 
-                    {/* Usuario encontrado */}
-                    <View style={styles.userFoundContainer}>
-                        <View style={styles.checkCircle}>
-                            <Text style={styles.checkText}>✓</Text>
+                    {showDropdown && query.length > 0 && !selectedUser && (
+                        <View style={styles.dropdown}>
+                            {resultados.length === 0 ? (
+                                <Text style={styles.noResults}>No se encontraron usuarios</Text>
+                            ) : (
+                                resultados.map(user => (
+                                    <TouchableOpacity
+                                        key={user.id}
+                                        style={styles.dropdownItem}
+                                        onPress={() => {
+                                            setSelectedUser(user);
+                                            setQuery('');
+                                            setShowDropdown(false);
+                                        }}
+                                    >
+                                        <Text style={styles.dropdownText}>
+                                            {user.nombre} ({user.email})
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))
+                            )}
                         </View>
-
-                        <Text style={styles.userFoundText}>
-                            Usuario encontrado:{' '}
-                            <Text style={styles.userName}>
-                                Juan Perez
+                    )}
+                    {selectedUser && (
+                        <View style={styles.selectedBox}>
+                            <Text style={styles.selectedText}>
+                                Usuario seleccionado:
                             </Text>
-                        </Text>
+
+                            <Text style={styles.selectedName}>
+                                {selectedUser.nombre}
+                            </Text>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setSelectedUser(null);
+                                    setQuery('');
+                                    setShowDropdown(false);
+                                }}
+                            >
+                                <Text style={styles.remove}>✕ Cambiar usuario</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    <View style={styles.footerButtons}>
+                        <TouchableOpacity
+                            style={styles.primaryButton}
+                            onPress={confirmarTransferencia}
+                        >
+                            <Text style={styles.primaryButtonText}>
+                                Confirmar transferencia
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.secondaryButton}
+                            onPress={() => router.push('/home')}>
+                            <Text style={styles.secondaryButtonText}>
+                                Cancelar
+                            </Text>
+                        </TouchableOpacity>
                     </View>
-
-                    {/* Botones */}
-                    <TouchableOpacity style={styles.primaryButton}
-                    onPress={() => router.push('/transferenciaAprobada')}>
-                        <Text style={styles.primaryButtonText}>
-                            Confirmar transferencia
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.secondaryButton}
-                    onPress={() => router.push('/home')}>
-                        <Text style={styles.secondaryButtonText}>
-                            Cancelar
-                        </Text>
-                    </TouchableOpacity>
-
-                    <View style={{ height: 100 }} />
                 </ScrollView>
             </View>
         </View>
@@ -152,11 +224,30 @@ const styles = StyleSheet.create({
         backgroundColor: '#051F3B',
         alignItems: 'center',
     },
+    backButton: {
+        position: 'absolute',
+        top: 55,
+        left: 18,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 20,
+    },
+
+    backText: {
+        color: '#FFFFFF',
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginTop: -2,
+    },
 
     logo: {
         width: '50%',
         height: 100,
-        marginTop: 40,
+        marginTop: 80, 
     },
 
     mainCard: {
@@ -241,7 +332,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#FFFFFF',
 
-        marginTop: -25, // superpone 8px sobre el componente anterior
+        marginTop: -25, 
 
         paddingVertical: 20,
         alignItems: 'center',
@@ -253,7 +344,7 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: -4, // sombra hacia arriba
+            height: -4, 
         },
         shadowOpacity: 0.12,
         shadowRadius: 8,
@@ -309,43 +400,11 @@ const styles = StyleSheet.create({
         color: '#000',
     },
 
-    userFoundContainer: {
-        width: '90%',
-        height: 45,
-        backgroundColor: '#D9D9D9',
-        borderRadius: 16,
-        marginTop: 20,
-        paddingHorizontal: 12,
-        flexDirection: 'row',
+    footerButtons: {
+        width: '100%',
         alignItems: 'center',
+        paddingBottom: 20,
     },
-
-    checkCircle: {
-        width: 30,
-        height: 30,
-        borderRadius: 17.5,
-        backgroundColor: '#4CAF50',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 10,
-    },
-
-    checkText: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-
-    userFoundText: {
-        fontSize: 16,
-        color: '#000',
-    },
-
-    userName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-
     primaryButton: {
         width: '90%',
         height: 50,
@@ -365,17 +424,67 @@ const styles = StyleSheet.create({
     secondaryButton: {
         width: '90%',
         height: 50,
-        borderWidth: 2,
+        borderWidth: 1.5,
         borderColor: '#1958D0',
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 16,
+        marginTop: 12,
+        backgroundColor: 'transparent',
     },
-
     secondaryButtonText: {
         color: '#1958D0',
-        fontSize: 20,
-        fontWeight: 'semibold',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    dropdown: {
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        marginTop: 5,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        maxHeight: 180,
+    },
+
+    dropdownItem: {
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+
+    dropdownText: {
+        fontSize: 16,
+        color: '#000',
+    },
+
+    noResults: {
+        padding: 12,
+        color: '#888',
+    },
+
+    selectedBox: {
+        width: '90%',
+        backgroundColor: '#D9D9D9',
+        borderRadius: 16,
+        padding: 12,
+        marginTop: 20,
+    },
+
+    selectedText: {
+        fontSize: 14,
+        color: '#000',
+    },
+
+    selectedName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginTop: 4,
+    },
+
+    remove: {
+        marginTop: 8,
+        color: '#1958D0',
+        fontWeight: '600',
     },
 });

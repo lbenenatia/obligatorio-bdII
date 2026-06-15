@@ -7,7 +7,6 @@ export default function PagoScreen() {
     const router = useRouter();
     return (
         <View style={styles.container}>
-            {/* COMPONENTE 1 - CONFIRMACIÓN */}
             <View style={styles.successContainer}>
                 <View style={styles.iconContainer}>
                     <FontAwesome6
@@ -26,7 +25,6 @@ export default function PagoScreen() {
                 </Text>
             </View>
 
-            {/* COMPONENTE 2 - ACCIONES */}
             <View style={styles.actionsContainer}>
                 <TouchableOpacity style={styles.primaryButton}
                     onPress={() => router.push('/home')}>
@@ -41,14 +39,12 @@ export default function PagoScreen() {
 
 const styles = StyleSheet.create({
     container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-},
-
-    /* COMPONENTE 1 */
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
 
     successContainer: {
         alignItems: 'center',
@@ -79,8 +75,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 
-    /* COMPONENTE 2 */
-
     actionsContainer: {
         alignItems: 'center',
         gap: 16,
@@ -100,56 +94,5 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 25,
         fontWeight: 'regular',
-    },
-
-    secondaryButton: {
-        width: 280,
-        height: 52,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    secondaryButtonText: {
-        color: '#1958D0',
-        fontSize: 25,
-        fontWeight: 'regular',
-    },
-
-    /* COMPONENTE 3 */
-
-    footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-
-        height: 115,
-        backgroundColor: '#D9D9D9',
-
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-
-        gap: 12,
-    },
-
-    footerButton: {
-        width: 150,
-        height: 48,
-
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-
-        gap: 8,
-    },
-
-    footerButtonText: {
-        color: '#1958D0',
-        fontSize: 16,
-        fontWeight: '600',
     },
 });

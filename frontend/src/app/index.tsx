@@ -18,19 +18,16 @@ export default function HomeScreen() {
       resizeMode="cover"
     >
       <View style={styles.content}>
-        {/* Logo */}
         <Image
           source={require('../../assets/images/logo_blanco.png')}
           style={styles.logo}
           resizeMode="contain"
         />
 
-        {/* Subtítulo */}
         <Text style={styles.subtitle}>
           Viví el mundial 2026
         </Text>
 
-        {/* Contenedor de botones */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
             style={styles.loginButton}
@@ -69,7 +66,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    marginTop: 83, // separación logo → subtítulo
+    marginTop: 83, 
     fontSize: 30,
     fontWeight: 'bold',
     color: '#FFFFFF',

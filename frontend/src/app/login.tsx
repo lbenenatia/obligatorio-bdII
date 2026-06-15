@@ -1,4 +1,8 @@
+import { AuthService } from '@/services/AuthService';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
+    Alert,
     Image,
     StyleSheet,
     Text,
@@ -7,36 +11,53 @@ import {
     View,
 } from 'react-native';
 
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
-    const iniciarSesion = () => {
-        if (email === 'funcionario@mundi26.com') {
-            router.replace('/funcionario/home');
+    const iniciarSesion = async () => {
+        if (!email.trim() || !password.trim()) {
+            Alert.alert(
+                'Campos incompletos',
+                'Ingresá correo y contraseña'
+            );
             return;
         }
 
-        if (email === 'admin@mundi26.com') {
-            router.replace('/administrador/home');
-            return;
-        }
+        try {
+            const usuario = await AuthService.login(
+                email,
+                password
+            );
 
-        router.replace('/home');
+            switch (usuario.rol) {
+                case 'ADMIN':
+                    router.replace('/administrador/home');
+                    break;
+
+                case 'FUNCIONARIO':
+                    router.replace('/funcionario/home');
+                    break;
+
+                case 'USUARIO':
+                    router.replace('/(tabs)/home');
+                    break;
+            }
+        } catch (error) {
+            Alert.alert(
+                'Error',
+                'Correo o contraseña incorrectos'
+            );
+        }
     };
     return (
         <View style={styles.container}>
-            {/* Logo */}
             <Image
                 source={require('../../assets/images/logo.png')}
                 style={styles.logo}
                 resizeMode="contain"
             />
 
-            {/* Título y subtítulo */}
             <View style={styles.headerContainer}>
                 <Text style={styles.title}>Iniciar sesión</Text>
                 <Text style={styles.subtitle}>
@@ -44,7 +65,6 @@ export default function LoginScreen() {
                 </Text>
             </View>
 
-            {/* Formulario */}
             <View style={styles.formContainer}>
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Correo electrónico</Text>
@@ -72,7 +92,6 @@ export default function LoginScreen() {
                 </View>
             </View>
 
-            {/* Sección inferior */}
             <View style={styles.bottomContainer}>
                 <Text style={styles.topText}>¿Olvidaste tu contraseña?</Text>
 
@@ -114,7 +133,7 @@ const styles = StyleSheet.create({
     },
 
     headerContainer: {
-        marginTop: 32, // distancia logo → título/subtítulo
+        marginTop: 32,
         alignItems: 'center',
     },
 
@@ -133,11 +152,11 @@ const styles = StyleSheet.create({
 
     formContainer: {
         width: '85%',
-        marginTop: 50, // distancia título/subtítulo → formulario
+        marginTop: 50, 
     },
 
     inputGroup: {
-        marginBottom: 28, // distancia entre inputs
+        marginBottom: 28,
     },
 
     label: {
@@ -160,7 +179,7 @@ const styles = StyleSheet.create({
     bottomContainer: {
         width: '85%',
         alignItems: 'center',
-        marginTop: 15, // distancia formulario → primer texto
+        marginTop: 15, 
     },
 
     topText: {
@@ -175,7 +194,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1545F4',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 32, // distancia primer texto → botón
+        marginTop: 32, 
     },
 
     buttonText: {
@@ -185,7 +204,7 @@ const styles = StyleSheet.create({
     },
 
     bottomText: {
-        marginTop: 42, // distancia botón → segundo texto
+        marginTop: 42,
         fontSize: 14,
         color: '#666',
         textAlign: 'center',

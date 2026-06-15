@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import {
     FlatList,
     ListRenderItem,
@@ -17,32 +18,85 @@ type Ticket = {
     match: string;
     date: string;
     time: string;
+    estadio: string;
 };
 
+// Mock
 const ticketsMock: Ticket[] = [
-    { id: '1', match: 'México vs Sudáfrica', date: '11 JUN - 16:00', time: 'Estadio Banorte' },
-    { id: '2', match: 'México vs Sudáfrica', date: '11 JUN - 16:00', time: 'Estadio Banorte' },
-    { id: '3', match: 'México vs Sudáfrica', date: '11 JUN - 16:00', time: 'Estadio Banorte' },
+    {
+        id: '1',
+        match: 'México vs Sudáfrica',
+        date: '2026-07-11',
+        time: '16:00', 
+        estadio: 'Estadio Banorte',
+    },
+    {
+        id: '2',
+        match: 'Argentina vs Brasil',
+        date: '2026-07-14',
+        time: '18:00',
+        estadio: 'Estadio Azteca',
+    },
+    {
+        id: '3',
+        match: 'Uruguay vs España',
+        date: '2026-07-14',
+        time: '20:00',
+        estadio: 'Estadio Centenario',
+    },
 ];
 
 export default function TicketsScreen() {
     const router = useRouter();
+
+    const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState<'todos' | 'hoy'>('todos');
+    const hoy = new Date().toISOString().split('T')[0];
+    // 🔎 FILTRO + BUSCADOR
+    const filteredTickets = useMemo(() => {
+        return ticketsMock.filter((t) => {
+            const matchSearch =
+                t.match.toLowerCase().includes(search.toLowerCase());
+
+            // SOLO hoy o futuros (no pasados)
+            const esDisponible = t.date >= hoy;
+
+            const matchFilter =
+                filter === 'todos'
+                    ? esDisponible
+                    : t.date === hoy;
+
+            return matchSearch && matchFilter;
+        });
+    }, [search, filter]);
+
     const renderItem: ListRenderItem<Ticket> = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.topInfo}>
                 <Text style={styles.title}>{item.match}</Text>
                 <Text style={styles.subtitle}>{item.date}</Text>
-                <Text style={styles.subtitle}>{item.time}</Text>
+                <Text style={styles.subtitle}>{item.time} - {item.estadio}</Text>
             </View>
 
             <View style={styles.bottomRow}>
-                <Text style={styles.ticketInfo}>2 entradas</Text>
-
                 <TouchableOpacity
                     style={styles.ticketButton}
-                    onPress={() => router.push('/compra')}
+                    onPress={() =>
+                        router.push({
+                            pathname: '/compra',
+                            params: {
+                                id: item.id,
+                                match: item.match,
+                                date: item.date,
+                                time: item.time,
+                                estadio: item.estadio,
+                            },
+                        })
+                    }
                 >
-                    <Text style={styles.ticketButtonText}>Ver ticket</Text>
+                    <Text style={styles.ticketButtonText}>
+                        Ver ticket
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -50,7 +104,6 @@ export default function TicketsScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* BUSCADOR */}
             <View style={styles.searchContainer}>
                 <FontAwesome6
                     name="magnifying-glass"
@@ -62,23 +115,52 @@ export default function TicketsScreen() {
                     placeholder="Buscar partido..."
                     placeholderTextColor="#6B7280"
                     style={styles.search}
+                    value={search}
+                    onChangeText={setSearch}
                 />
             </View>
 
-            {/* FILTROS */}
             <View style={styles.filters}>
-                <TouchableOpacity style={styles.activeFilter}>
-                    <Text style={styles.activeFilterText}>Todos</Text>
+                <TouchableOpacity
+                    style={
+                        filter === 'todos'
+                            ? styles.activeFilter
+                            : styles.inactiveFilter
+                    }
+                    onPress={() => setFilter('todos')}
+                >
+                    <Text
+                        style={
+                            filter === 'todos'
+                                ? styles.activeFilterText
+                                : styles.inactiveFilterText
+                        }
+                    >
+                        Todos
+                    </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.inactiveFilter}>
-                    <Text style={styles.inactiveFilterText}>Hoy</Text>
+                <TouchableOpacity
+                    style={
+                        filter === 'hoy'
+                            ? styles.activeFilter
+                            : styles.inactiveFilter
+                    }
+                    onPress={() => setFilter('hoy')}
+                >
+                    <Text
+                        style={
+                            filter === 'hoy'
+                                ? styles.activeFilterText
+                                : styles.inactiveFilterText
+                        }
+                    >
+                        Hoy
+                    </Text>
                 </TouchableOpacity>
             </View>
-
-            {/* LISTA DE TICKETS */}
-            <FlatList<Ticket>
-                data={ticketsMock}
+            <FlatList
+                data={filteredTickets}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
@@ -203,7 +285,6 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: 36,
     },
 
     ticketButtonText: {

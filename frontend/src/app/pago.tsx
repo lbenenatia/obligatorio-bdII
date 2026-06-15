@@ -1,54 +1,102 @@
+import { useCompras } from '@/context/ComprasContext';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
+import { getUsuarioLogueado } from '../data/sesion';
 
 export default function PagoScreen() {
-    const [metodoPago, setMetodoPago] = useState('tarjeta');
     const router = useRouter();
+    const { agregarCompra } = useCompras();
+    const usuario = getUsuarioLogueado();
+
+    const {
+        match,
+        date,
+        time,
+        sector,
+        cantidad,
+        precio,
+        estadio,
+    } = useLocalSearchParams();
+
+    const [metodoPago, setMetodoPago] = useState('tarjeta');
+
+    const cantidadNum = Number(cantidad ?? 0);
+    const precioNum = Number(precio ?? 0);
+
+    const subtotal = cantidadNum * precioNum;
+    const comision = subtotal * 0.05;
+    const total = subtotal + comision;
+
+    const finalizarPago = () => {
+        const compra = {
+            id: String(Date.now()),
+            usuarioId: usuario?.id ?? 0,
+            match: String(match),
+            date: String(date),
+            time: String(time),
+            estadio: String(estadio),
+            sector: sector as 'A' | 'B',
+
+            cantidad: cantidadNum,
+            precioUnitario: precioNum,
+            total,
+        };
+
+        agregarCompra(compra);
+
+        router.push('/pagoAprobado');
+    };
 
     return (
         <View style={styles.container}>
-            {/* LOGO */}
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Text style={styles.backText}>‹</Text>
+            </TouchableOpacity>
             <Image
                 source={require('../../assets/images/logo.png')}
                 style={styles.logo}
                 resizeMode="contain"
             />
 
-            {/* TÍTULO */}
             <Text style={styles.title}>Paso 1 de 2</Text>
 
-            {/* OPCIONES */}
             <View style={styles.paymentCard}>
-                {/* PARTE SUPERIOR */}
                 <View style={styles.topSection}>
                     <View style={styles.textGroup}>
-                        <Text style={styles.matchTitle}>México vs Sudáfrica</Text>
-                        <Text style={styles.sectorText}>Sector A</Text>
-                        <Text style={styles.ticketCount}>2 entradas</Text>
+                        <Text style={styles.matchTitle}>
+                            {match ?? 'Partido'}
+                        </Text>
+
+                        <Text style={styles.sectorText}>
+                            Sector {sector ?? '-'}
+                        </Text>
+
+                        <Text style={styles.ticketCount}>
+                            {cantidadNum} entradas
+                        </Text>
                     </View>
                 </View>
 
-                {/* PARTE INFERIOR */}
                 <View style={styles.bottomSection}>
-                    {/* Primera fila */}
                     <View style={styles.row}>
                         <Text style={styles.bottomText}>Entradas</Text>
-                        <Text style={styles.priceText}>USD 300</Text>
+                        <Text style={styles.priceText}>USD {subtotal}</Text>
                     </View>
 
-                    {/* Segunda fila */}
                     <Text style={styles.bottomText}>Comisión 5%</Text>
 
-                    {/* Separador */}
                     <View style={styles.divider} />
 
-                    {/* Última fila */}
                     <View style={styles.row}>
                         <Text style={styles.footerText}>TOTAL</Text>
-                        <Text style={styles.footerText}>USD 315</Text>
+                        <Text style={styles.footerText}>
+                            USD {total.toFixed(2)}
+                        </Text>
                     </View>
                 </View>
             </View>
@@ -59,12 +107,8 @@ export default function PagoScreen() {
             >
                 <View style={styles.optionLeft}>
                     <FontAwesome6 name="credit-card" size={24} color="#000" />
-
-                    <Text style={styles.paymentOptionText}>
-                        Tarjeta
-                    </Text>
+                    <Text style={styles.paymentOptionText}>Tarjeta</Text>
                 </View>
-
                 <View
                     style={[
                         styles.radioButton,
@@ -72,19 +116,14 @@ export default function PagoScreen() {
                     ]}
                 />
             </TouchableOpacity>
-
             <TouchableOpacity
                 style={styles.paymentOption}
                 onPress={() => setMetodoPago('paypal')}
             >
                 <View style={styles.optionLeft}>
                     <FontAwesome6 name="paypal" size={24} color="#003087" />
-
-                    <Text style={styles.paymentOptionText}>
-                        PayPal
-                    </Text>
+                    <Text style={styles.paymentOptionText}>PayPal</Text>
                 </View>
-
                 <View
                     style={[
                         styles.radioButton,
@@ -92,19 +131,14 @@ export default function PagoScreen() {
                     ]}
                 />
             </TouchableOpacity>
-
             <TouchableOpacity
                 style={styles.paymentOption}
                 onPress={() => setMetodoPago('applepay')}
             >
                 <View style={styles.optionLeft}>
                     <FontAwesome6 name="apple-pay" size={24} color="#000" />
-
-                    <Text style={styles.paymentOptionText}>
-                        Apple Pay
-                    </Text>
+                    <Text style={styles.paymentOptionText}>Apple Pay</Text>
                 </View>
-
                 <View
                     style={[
                         styles.radioButton,
@@ -112,18 +146,17 @@ export default function PagoScreen() {
                     ]}
                 />
             </TouchableOpacity>
-
-            {/* BOTÓN */}
-            <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}
-                onPress={() => router.push('/pagoAprobado')}>
+            <TouchableOpacity
+                style={styles.button}
+                onPress={finalizarPago}
+            >
+                <Text style={styles.buttonText}>
                     Finalizar pago
                 </Text>
             </TouchableOpacity>
         </View>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -131,7 +164,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 40,
     },
+    backButton: {
+        position: 'absolute',
+        top: 55,
+        left: 18,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(25, 88, 208, 0.12)', 
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 20,
+    },
 
+    backText: {
+        color: '#1958D0',
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginTop: -2,
+    },
     logo: {
         width: '60%',
         height: 120,
@@ -230,11 +281,6 @@ const styles = StyleSheet.create({
         color: '#000000',
     },
 
-    paymentText: {
-        fontSize: 18,
-        color: '#000',
-        fontWeight: 'bold',
-    },
     paymentOption: {
         width: '70%',
         height: 58,
