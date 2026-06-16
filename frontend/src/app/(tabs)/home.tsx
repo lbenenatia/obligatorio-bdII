@@ -39,12 +39,11 @@ export default function HomeScreen() {
                 <View style={styles.infoCard}>
                     <Text style={styles.text1}>PROXIMO EVENTO</Text>
                     <Text style={styles.text2}>
-                        {proximoEvento?.equipoLocal} vs{' '}
-                        {proximoEvento?.equipoVisitante}
+                        {proximoEvento?.match}
                     </Text>
 
                     <Text style={styles.text3}>
-                        {proximoEvento?.fecha}
+                        {proximoEvento?.date} - {proximoEvento?.time}
                     </Text>
 
                     <Text style={styles.text4}>

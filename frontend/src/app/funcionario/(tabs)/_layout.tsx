@@ -18,41 +18,26 @@ export default function TabLayout() {
                 tabBarInactiveTintColor: '#6B7280',
             }}
         >
+
+            {/* HOME */}
             <Tabs.Screen
                 name="home"
                 options={{
                     title: 'Inicio',
                     tabBarIcon: ({ color, size }) => (
-                        <Ionicons
-                            name="home"
-                            size={size}
-                            color={color}
-                        />
+                        <Ionicons name="home" size={size} color={color} />
                     ),
                 }}
             />
 
+            {/* ESCANEAR ENTRADA (archivo: escanearEntrada.tsx) */}
             <Tabs.Screen
-                name="estadios"
+                name="escanearEntrada"
                 options={{
-                    title: 'Estadios',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons
-                            name="business"
-                            size={size}
-                            color={color}
-                        />
-                    ),
-                }}
-            />
-
-            <Tabs.Screen
-                name="eventos"
-                options={{
-                    title: 'Eventos',
+                    title: 'Escanear',
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons
-                            name="calendar-check"
+                            name="qrcode-scan"
                             size={size}
                             color={color}
                         />
@@ -60,6 +45,22 @@ export default function TabLayout() {
                 }}
             />
 
+            {/* HISTORIAL */}
+            <Tabs.Screen
+                name="historial"
+                options={{
+                    title: 'Historial',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons
+                            name="time-outline"
+                            size={size}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            {/* PERFIL */}
             <Tabs.Screen
                 name="perfil"
                 options={{
@@ -73,6 +74,7 @@ export default function TabLayout() {
                     ),
                 }}
             />
+
         </Tabs>
     );
 }

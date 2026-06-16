@@ -11,6 +11,7 @@ export default function PagoScreen() {
     const usuario = getUsuarioLogueado();
 
     const {
+        eventoId,
         match,
         date,
         time,
@@ -33,6 +34,7 @@ export default function PagoScreen() {
         const compra = {
             id: String(Date.now()),
             usuarioId: usuario?.id ?? 0,
+            eventoId: Number(eventoId ?? 0),
             match: String(match),
             date: String(date),
             time: String(time),
@@ -42,6 +44,8 @@ export default function PagoScreen() {
             cantidad: cantidadNum,
             precioUnitario: precioNum,
             total,
+
+            transferido: false,
         };
 
         agregarCompra(compra);
@@ -171,7 +175,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(25, 88, 208, 0.12)', 
+        backgroundColor: 'rgba(25, 88, 208, 0.12)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 20,

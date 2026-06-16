@@ -1,39 +1,70 @@
+import { useCompras } from '@/context/ComprasContext';
+import { useEventos } from '@/context/EventosContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-type Sector = {
-    id: 'A' | 'B';
-    precio: number;
-    disponibles: number;
-};
-
-const sectores: Sector[] = [
-    { id: 'A', precio: 150, disponibles: 45 },
-    { id: 'B', precio: 200, disponibles: 30 },
-];
 
 export default function CompraScreen() {
+    const { eventos } = useEventos();
+    const { compras } = useCompras();
     const router = useRouter();
+    const entradasVendidas = (
+        sectorId: string
+    ) => {
+        return compras
+            .filter(
+                c =>
+                    c.eventoId === Number(id) &&
+                    c.sector === sectorId
+            )
+            .reduce(
+                (acc, c) => acc + c.cantidad,
+                0
+            );
+    };
+    const disponibles = (
+        capacidad: number,
+        sectorId: string
+    ) => {
+        return capacidad - entradasVendidas(sectorId);
+    };
 
     const {
         id,
         match,
         date,
         time,
-        estadio, // 👈 IMPORTANTE: ahora sí lo recibimos
+        estadio,
     } = useLocalSearchParams();
-
+    const evento = eventos.find(
+        e => e.id === Number(id)
+    );
+    const sectoresDisponibles =
+        evento?.sectores
+            ? Object.entries(evento.sectores)
+            : [];
     const [cantidad, setCantidad] = useState(1);
-    const [sectorSeleccionado, setSectorSeleccionado] = useState<'A' | 'B'>('A');
 
-    const sector = sectores.find(s => s.id === sectorSeleccionado)!;
+    const [sectorSeleccionado, setSectorSeleccionado] =
+        useState<'A' | 'B' | 'C' | 'D'>('A');
+
+    const sectorActual =
+        evento?.sectores?.[
+        sectorSeleccionado as keyof typeof evento.sectores
+        ];
 
     const total = useMemo(() => {
-        return cantidad * sector.precio;
-    }, [cantidad, sector]);
+        return cantidad * (sectorActual?.precio ?? 0);
+    }, [cantidad, sectorActual]);
 
-    const maxDisponibles = sector.disponibles;
+    const maxDisponibles =
+        sectorActual
+            ? disponibles(
+                sectorActual.capacidad,
+                sectorSeleccionado
+            )
+            : 0;
 
     const aumentar = () => {
         if (cantidad < maxDisponibles) {
@@ -46,7 +77,9 @@ export default function CompraScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.container}>
             <View style={styles.imageContainer}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -69,45 +102,44 @@ export default function CompraScreen() {
             </View>
 
             <View style={styles.optionsContainer}>
-                {sectores.map((s) => (
-                    <TouchableOpacity
-                        key={s.id}
-                        style={[
-                            styles.optionCard,
-                            sectorSeleccionado === s.id
-                                ? styles.optionCardSelected
-                                : styles.optionCardInactive,
-                        ]}
-                        onPress={() => {
-                            setSectorSeleccionado(s.id);
-                            setCantidad(1);
-                        }}
-                    >
-                        <View style={styles.radioContainer}>
-                            <View
-                                style={[
-                                    styles.radio,
-                                    sectorSeleccionado === s.id
-                                        ? styles.radioSelected
-                                        : styles.radioInactive,
-                                ]}
-                            />
-                        </View>
+                {sectoresDisponibles.map(([idSector, info]) => {
+                    const quedan =
+                        disponibles(
+                            info.capacidad,
+                            idSector
+                        );
 
-                        <View style={styles.optionTextContainer}>
-                            <Text style={styles.optionTitle}>
-                                Sector {s.id}
-                            </Text>
-                            <Text style={styles.optionSubtitle}>
-                                USD {s.precio}
-                            </Text>
-                        </View>
+                    return (
+                        <TouchableOpacity
+                            key={idSector}
+                            style={[
+                                styles.optionCard,
+                                sectorSeleccionado === idSector
+                                    ? styles.optionCardSelected
+                                    : styles.optionCardInactive,
+                            ]}
+                            onPress={() =>
+                                setSectorSeleccionado(
+                                    idSector as any
+                                )
+                            }
+                        >
+                            <View style={styles.optionTextContainer}>
+                                <Text style={styles.optionTitle}>
+                                    Sector {idSector}
+                                </Text>
 
-                        <Text style={styles.optionPrice}>
-                            Quedan {s.disponibles}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                                <Text style={styles.optionSubtitle}>
+                                    USD {info.precio}
+                                </Text>
+                            </View>
+
+                            <Text style={styles.optionPrice}>
+                                Quedan {quedan}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
 
             <View style={styles.counterContainer}>
@@ -142,14 +174,14 @@ export default function CompraScreen() {
                         router.push({
                             pathname: '/pago',
                             params: {
-                                id: String(id ?? ''),
+                                eventoId: String(id ?? ''),
                                 match: String(match ?? ''),
                                 date: String(date ?? ''),
                                 time: String(time ?? ''),
                                 estadio: String(estadio ?? ''),
                                 sector: sectorSeleccionado,
                                 cantidad: String(cantidad),
-                                precio: String(sector.precio),
+                                precio: String(sectorActual?.precio ?? 0),
                             },
                         })
                     }
@@ -159,13 +191,14 @@ export default function CompraScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        flexGrow: 1,
         backgroundColor: '#ffffff',
+        paddingBottom: 40,
     },
     backButton: {
         position: 'absolute',
@@ -174,7 +207,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.4)', 
+        backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 10,
@@ -200,12 +233,12 @@ const styles = StyleSheet.create({
     content: {
         padding: 20,
         gap: 12,
-        alignItems: 'center', 
+        alignItems: 'center',
         marginTop: 17,
     },
 
     title: {
-        width: '90%', 
+        width: '90%',
         color: '#000',
         fontSize: 30,
         fontWeight: 'bold',
@@ -217,7 +250,7 @@ const styles = StyleSheet.create({
         color: '#000',
         fontSize: 20,
         textAlign: 'left',
-        marginTop: -6, 
+        marginTop: -6,
     },
     optionsContainer: {
         marginTop: -10,
@@ -236,7 +269,7 @@ const styles = StyleSheet.create({
     },
 
     optionCardSelected: {
-        backgroundColor: 'rgba(50, 93, 233, 0.3)', 
+        backgroundColor: 'rgba(50, 93, 233, 0.3)',
         borderColor: 'rgba(0, 12, 246, 0.4)',
     },
 
@@ -305,7 +338,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.3)', 
+        borderColor: 'rgba(0, 0, 0, 0.3)',
     },
 
     counterButtonText: {

@@ -1,9 +1,11 @@
+import { useEventos } from '@/context/EventosContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Eventos() {
     const router = useRouter();
+    const { eventos } = useEventos();
     return (
         <View style={styles.container}>
 
@@ -12,43 +14,28 @@ export default function Eventos() {
             <View style={styles.headerActions}>
                 <View />
                 <TouchableOpacity style={styles.addButton}
-                onPress={() => router.push(`/administrador/nuevoEvento`)}>
+                    onPress={() => router.push(`/administrador/nuevoEvento`)}>
                     <Ionicons name="add" size={22} color="#FFF" />
                     <Text style={styles.addButtonText}>Nuevo Evento</Text>
                 </TouchableOpacity>
             </View>
 
             <View style={styles.contentContainer}>
-
-                {[
-                    {
-                        id: 1,
-                        partido: 'Uruguay vs Argentina',
-                        fecha: '15/06/2026 - 20:00',
-                        estadio: 'Estadio Centenario',
-                    },
-                    {
-                        id: 2,
-                        partido: 'Brasil vs México',
-                        fecha: '18/06/2026 - 18:00',
-                        estadio: 'Arena Pernambuco',
-                    },
-                    {
-                        id: 3,
-                        partido: 'España vs Francia',
-                        fecha: '20/06/2026 - 21:00',
-                        estadio: 'Santiago Bernabéu',
-                    },
-                ].map((evento) => (
+                {eventos.length === 0 && (
+                    <Text style={styles.placeholderText}>
+                        No hay eventos creados.
+                    </Text>
+                )}
+                {eventos.map((evento) => (
                     <View key={evento.id} style={styles.eventRow}>
 
                         <View style={styles.eventInfo}>
                             <Text style={styles.eventTitle}>
-                                {evento.partido}
+                                {evento.paisLocal} vs {evento.paisVisitante}
                             </Text>
 
                             <Text style={styles.eventDetail}>
-                                {evento.fecha}
+                                {evento.fecha} - {evento.hora}
                             </Text>
 
                             <Text style={styles.eventDetail}>
@@ -57,7 +44,14 @@ export default function Eventos() {
                         </View>
 
                         <TouchableOpacity style={styles.arrowButton}
-                        onPress={() => router.push(`/administrador/evento`)}>
+                            onPress={() =>
+                                router.push({
+                                    pathname: '/administrador/evento',
+                                    params: {
+                                        id: evento.id,
+                                    },
+                                })
+                            }>
                             <Ionicons
                                 name="chevron-forward"
                                 size={28}
@@ -70,7 +64,7 @@ export default function Eventos() {
 
             </View>
 
-        </View>
+        </View >
     );
 }
 

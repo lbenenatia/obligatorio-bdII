@@ -1,7 +1,33 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
+import { useCompras } from '@/context/ComprasContext';
+import { useEventos } from '@/context/EventosContext';
+import { getUsuarioLogueado } from '@/data/sesion';
+import { usuariosMock } from '@/data/usuarios';
+
 export default function Perfil() {
+    const usuario = getUsuarioLogueado();
+    const { compras } = useCompras();
+
+    // 📅 EVENTOS ACTIVOS (por ahora todos)
+    const { eventos } = useEventos();
+    const eventosActivos = eventos.length;
+
+    // 🎟 ENTRADAS VENDIDAS
+    const entradasVendidas = compras.reduce(
+        (acc, c) => acc + c.cantidad,
+        0
+    );
+
+    // 👤 USUARIOS
+    const usuariosRegistrados = usuariosMock.length;
+
+    // 🔁 TRANSFERENCIAS
+    const transferencias = compras.filter(
+        c => c.transferido === true
+    ).length;
+
     return (
         <View style={styles.container}>
             <Image
@@ -11,12 +37,18 @@ export default function Perfil() {
             />
 
             <View style={styles.textContainer}>
-                <Text style={styles.title}>👋 ¡Hola Admin!</Text>
-                <Text style={styles.subtitle}>Administrador - Uruguay</Text>
+                <Text style={styles.title}>
+                    👋 ¡Hola {usuario?.nombre || 'Admin'}!
+                </Text>
+
+                <Text style={styles.subtitle}>
+                    {usuario?.rol || 'ADMIN'} - {usuario?.pais || 'Uruguay'}
+                </Text>
             </View>
 
             <View style={styles.grid}>
-                {/* Eventos activos */}
+
+                {/* EVENTOS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
                         <MaterialCommunityIcons
@@ -26,11 +58,13 @@ export default function Perfil() {
                         />
                     </View>
 
-                    <Text style={styles.cardTitle}>Eventos Activos</Text>
-                    <Text style={styles.cardNumber}>12</Text>
+                    <Text style={styles.cardTitle}>Eventos</Text>
+                    <Text style={styles.cardNumber}>
+                        {eventosActivos}
+                    </Text>
                 </View>
 
-                {/* Entradas vendidas */}
+                {/* ENTRADAS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
                         <Ionicons
@@ -41,10 +75,12 @@ export default function Perfil() {
                     </View>
 
                     <Text style={styles.cardTitle}>Entradas Vendidas</Text>
-                    <Text style={styles.cardNumber}>1.250</Text>
+                    <Text style={styles.cardNumber}>
+                        {entradasVendidas}
+                    </Text>
                 </View>
 
-                {/* Usuarios registrados */}
+                {/* USUARIOS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#EDE9FE' }]}>
                         <Ionicons
@@ -54,11 +90,15 @@ export default function Perfil() {
                         />
                     </View>
 
-                    <Text style={styles.cardTitle}>Usuarios Registrados</Text>
-                    <Text style={styles.cardNumber}>856</Text>
+                    <Text style={styles.cardTitle}>
+                        Usuarios
+                    </Text>
+                    <Text style={styles.cardNumber}>
+                        {usuariosRegistrados}
+                    </Text>
                 </View>
 
-                {/* Transferencias */}
+                {/* TRANSFERENCIAS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#FFEDD5' }]}>
                         <Ionicons
@@ -68,9 +108,14 @@ export default function Perfil() {
                         />
                     </View>
 
-                    <Text style={styles.cardTitle}>Transferencias</Text>
-                    <Text style={styles.cardNumber}>1.203</Text>
+                    <Text style={styles.cardTitle}>
+                        Transferencias
+                    </Text>
+                    <Text style={styles.cardNumber}>
+                        {transferencias}
+                    </Text>
                 </View>
+
             </View>
         </View>
     );

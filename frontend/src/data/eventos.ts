@@ -3,16 +3,16 @@ import { Evento } from '@/types/evento';
 export const eventosMock: Evento[] = [
     {
         id: 1,
-        equipoLocal: 'México',
-        equipoVisitante: 'Sudáfrica',
-        fecha: '11 JUL - 16:00',
-        estadio: 'Estadio Banorte, Ciudad de México',
+        match: 'México vs Sudáfrica',
+        date: '2026-07-11',
+        time: '16:00',
+        estadio: 'Estadio Banorte',
     },
     {
         id: 2,
-        equipoLocal: 'Uruguay',
-        equipoVisitante: 'España',
-        fecha: '12 JUL - 19:00',
+        match: 'Uruguay vs España',
+        date: '2026-07-12',
+        time: '20:00',
         estadio: 'MetLife Stadium',
     },
 ];

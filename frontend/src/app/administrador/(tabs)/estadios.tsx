@@ -1,29 +1,51 @@
+import { useEstadios } from '@/context/EstadiosContext';
+import { useEventos } from '@/context/EventosContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Estadios() {
-    const estadios = [
-        {
-            id: 1,
-            nombre: 'Estadio Centenario',
-            ciudad: 'Montevideo',
-            capacidad: 60235,
-        },
-        {
-            id: 2,
-            nombre: 'Campeón del Siglo',
-            ciudad: 'Montevideo',
-            capacidad: 40000,
-        },
-        {
-            id: 3,
-            nombre: 'Gran Parque Central',
-            ciudad: 'Montevideo',
-            capacidad: 38000,
-        },
-    ];
+    const { eventos } = useEventos();
+    const { estadios, eliminarEstadio } = useEstadios();
     const router = useRouter();
+    const [search, setSearch] = useState('');
+    const borrarEstadio = (id: number) => {
+        const estadio = estadios.find(
+            e => e.id === id
+        );
+
+        const tieneEventos = eventos.some(
+            evento => evento.estadio === estadio?.nombre
+        );
+
+        if (tieneEventos) {
+            Alert.alert(
+                'No se puede eliminar',
+                'Este estadio tiene eventos asociados.'
+            );
+            return;
+        }
+
+        Alert.alert(
+            'Eliminar estadio',
+            '¿Está seguro que desea eliminar este estadio?',
+            [
+                {
+                    text: 'Cancelar',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: () => eliminarEstadio(id),
+                },
+            ]
+        );
+    };
+    const estadiosFiltrados = estadios.filter((estadio) =>
+        estadio.nombre.toLowerCase().includes(search.toLowerCase())
+    );
     return (
         <View style={styles.container}>
             {/* Header */}
@@ -31,7 +53,7 @@ export default function Estadios() {
                 <Text style={styles.title}>Estadios</Text>
 
                 <TouchableOpacity style={styles.addButton}
-                onPress={() => router.push('/administrador/crearEstadio')}>
+                    onPress={() => router.push('/administrador/crearEstadio')}>
                     <Ionicons name="add" size={28} color="#FFF" />
                 </TouchableOpacity>
             </View>
@@ -39,54 +61,95 @@ export default function Estadios() {
             {/* Buscador */}
             <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#6B7280" />
-
                 <TextInput
                     placeholder="Buscar estadio..."
                     placeholderTextColor="#6B7280"
                     style={styles.searchInput}
+                    value={search}
+                    onChangeText={setSearch}
                 />
             </View>
 
             {/* Lista */}
-            {estadios.map((estadio) => (
-                <View key={estadio.id} style={styles.card}>
+            {estadiosFiltrados.map((estadio) => {
 
-                    {/* IMAGEN A LA IZQUIERDA */}
-                    <View style={styles.cardImageContainer}>
-                        <Image
-                            source={require('../../../../assets/images/estadio.png')}
-                            style={styles.cardImage}
-                            resizeMode="cover"
-                        />
+                // 👇 ACA VA (este es el lugar correcto)
+                const tieneEventosAsociados = eventos.some(
+                    e => e.estadio === estadio.nombre
+                );
+
+                return (
+                    <View key={estadio.id} style={styles.card}>
+                        {/* IMAGEN A LA IZQUIERDA */}
+                        <View style={styles.cardImageContainer}>
+                            <Image
+                                source={require('../../../../assets/images/estadio.png')}
+                                style={styles.cardImage}
+                                resizeMode="cover"
+                            />
+                        </View>
+
+                        {/* TEXTO A LA DERECHA */}
+                        <View style={styles.cardContent}>
+                            <Text style={styles.nombre}>
+                                {estadio.nombre}
+                            </Text>
+
+                            <Text style={styles.info}>
+                                {estadio.ciudad}
+                            </Text>
+
+                            <Text style={styles.info}>
+                                {estadio.capacidad.toLocaleString()}
+                            </Text>
+                        </View>
+
+                        {/* BOTÓN EDITAR */}
+                        <View style={styles.botones}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.editButton,
+                                    tieneEventosAsociados &&
+                                    styles.buttonDisabled,
+                                ]}
+                                disabled={tieneEventosAsociados}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/administrador/editarEstadio',
+                                        params: {
+                                            id: estadio.id,
+                                        },
+                                    })
+                                }
+                            >
+                                <Ionicons
+                                    name="create-outline"
+                                    size={22}
+                                    color="#FFF"
+                                />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.deleteButton,
+                                    tieneEventosAsociados &&
+                                    styles.buttonDisabled,
+                                ]}
+                                disabled={tieneEventosAsociados}
+                                onPress={() =>
+                                    borrarEstadio(estadio.id)
+                                }
+                            >
+                                <Ionicons
+                                    name="trash-outline"
+                                    size={22}
+                                    color="#FFF"
+                                />
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
-                    {/* TEXTO A LA DERECHA */}
-                    <View style={styles.cardContent}>
-                        <Text style={styles.nombre}>
-                            {estadio.nombre}
-                        </Text>
-
-                        <Text style={styles.info}>
-                            {estadio.ciudad}
-                        </Text>
-
-                        <Text style={styles.info}>
-                            {estadio.capacidad.toLocaleString()}
-                        </Text>
-                    </View>
-
-                    {/* BOTÓN EDITAR */}
-                    <TouchableOpacity style={styles.editButton}
-                    onPress={() => router.push('/administrador/crearEstadio')}>
-                        <Ionicons
-                            name="create-outline"
-                            size={22}
-                            color="#FFF"
-                        />
-                    </TouchableOpacity>
-
-                </View>
-            ))}
+                );
+            })}
         </View>
     );
 }
@@ -186,5 +249,20 @@ const styles = StyleSheet.create({
         backgroundColor: '#2563EB',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    botones: {
+        gap: 8,
+    },
+
+    deleteButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        backgroundColor: '#DC2626',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    buttonDisabled: {
+        backgroundColor: '#9CA3AF',
     },
 });

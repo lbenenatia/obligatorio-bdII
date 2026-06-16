@@ -1,3 +1,5 @@
+import { useEventos } from '@/context/EventosContext';
+import { Evento } from '@/types/evento';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -13,69 +15,47 @@ import {
 
 import { FontAwesome6 } from '@expo/vector-icons';
 
-type Ticket = {
-    id: string;
-    match: string;
-    date: string;
-    time: string;
-    estadio: string;
-};
-
-// Mock
-const ticketsMock: Ticket[] = [
-    {
-        id: '1',
-        match: 'México vs Sudáfrica',
-        date: '2026-07-11',
-        time: '16:00', 
-        estadio: 'Estadio Banorte',
-    },
-    {
-        id: '2',
-        match: 'Argentina vs Brasil',
-        date: '2026-07-14',
-        time: '18:00',
-        estadio: 'Estadio Azteca',
-    },
-    {
-        id: '3',
-        match: 'Uruguay vs España',
-        date: '2026-07-14',
-        time: '20:00',
-        estadio: 'Estadio Centenario',
-    },
-];
-
 export default function TicketsScreen() {
     const router = useRouter();
 
+    const { eventos } = useEventos();
+
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState<'todos' | 'hoy'>('todos');
-    const hoy = new Date().toISOString().split('T')[0];
-    // 🔎 FILTRO + BUSCADOR
-    const filteredTickets = useMemo(() => {
-        return ticketsMock.filter((t) => {
-            const matchSearch =
-                t.match.toLowerCase().includes(search.toLowerCase());
 
-            // SOLO hoy o futuros (no pasados)
-            const esDisponible = t.date >= hoy;
+    const hoy = new Date().toISOString().split('T')[0];
+
+    const filteredTickets = useMemo(() => {
+        return eventos.filter((t) => {
+            const partido = `${t.paisLocal} vs ${t.paisVisitante}`;
+
+            const matchSearch = partido
+                .toLowerCase()
+                .includes(search.toLowerCase());
 
             const matchFilter =
                 filter === 'todos'
-                    ? esDisponible
-                    : t.date === hoy;
+                    ? true
+                    : t.fecha === hoy;
 
             return matchSearch && matchFilter;
         });
-    }, [search, filter]);
+    }, [eventos, search, filter]);
 
-    const renderItem: ListRenderItem<Ticket> = ({ item }) => (
+    const renderItem: ListRenderItem<Evento> = ({ item }) => (
         <View style={styles.card}>
             <View style={styles.topInfo}>
-                <Text style={styles.title}>{item.match}</Text>
-                <Text style={styles.subtitle}>{item.date}</Text>
-                <Text style={styles.subtitle}>{item.time} - {item.estadio}</Text>
+                <Text style={styles.title}>
+                    {item.paisLocal} vs {item.paisVisitante}
+                </Text>
+
+                <Text style={styles.subtitle}>
+                    {item.fecha}
+                </Text>
+
+                <Text style={styles.subtitle}>
+                    {item.hora} - {item.estadio}
+                </Text>
             </View>
 
             <View style={styles.bottomRow}>
@@ -85,10 +65,10 @@ export default function TicketsScreen() {
                         router.push({
                             pathname: '/compra',
                             params: {
-                                id: item.id,
-                                match: item.match,
-                                date: item.date,
-                                time: item.time,
+                                id: String(item.id),
+                                match: `${item.paisLocal} vs ${item.paisVisitante}`,
+                                date: item.fecha,
+                                time: item.hora,
                                 estadio: item.estadio,
                             },
                         })
@@ -159,9 +139,10 @@ export default function TicketsScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
+
             <FlatList
                 data={filteredTickets}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => String(item.id)}
                 renderItem={renderItem}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.list}
@@ -256,7 +237,7 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: 20,
-        fontWeight: 'semibold',
+        fontWeight: 'bold',
         color: '#000000',
         textAlign: 'center',
     },
@@ -271,11 +252,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-
-    ticketInfo: {
-        fontSize: 16,
-        color: '#000000',
     },
 
     ticketButton: {

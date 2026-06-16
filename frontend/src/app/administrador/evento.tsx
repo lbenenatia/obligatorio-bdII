@@ -1,142 +1,299 @@
+import { useCompras } from '@/context/ComprasContext';
+import { useEventos } from '@/context/EventosContext';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 
-export default function Eventos() {
+export default function Evento() {
     const [tabActiva, setTabActiva] = useState('informacion');
+    const router = useRouter();
+    const { id } = useLocalSearchParams();
+    const { eventos, eliminarEvento } = useEventos();
+    const { compras } = useCompras();
+    const evento = eventos.find(
+        (e) => e.id === Number(id)
+    );
 
+    if (!evento) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.titulo}>
+                    Evento no encontrado
+                </Text>
+            </View>
+        );
+    }
+    const capacidad = evento.capacidad;
+    const entradasVendidas = compras
+        .filter(c => c.eventoId === evento.id)
+        .reduce((acc, c) => acc + c.cantidad, 0);
+    const entradasDisponibles =
+        evento.capacidad - entradasVendidas;
+    const estadoEvento =
+        entradasDisponibles <= 0
+            ? 'Agotado'
+            : 'Disponible';
+    const borrarEvento = () => {
+        if (entradasVendidas > 0) {
+            Alert.alert(
+                'No se puede eliminar',
+                `El evento tiene ${entradasVendidas} entradas vendidas.`
+            );
+            return;
+        }
+
+        Alert.alert(
+            'Eliminar evento',
+            '¿Está seguro que desea eliminar este evento?',
+            [
+                {
+                    text: 'Cancelar',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Eliminar',
+                    style: 'destructive',
+                    onPress: () => {
+                        eliminarEvento(Number(id));
+                        router.push('/administrador/eventos');
+                    },
+                },
+            ]
+        );
+    };
+
+    const sectoresHabilitados = Object.values(
+        evento.sectores
+    ).filter(
+        sector => sector.capacidad > 0
+    ).length;
     return (
-        <View style={styles.container}>
-            <Text style={styles.titulo}>Detalles del evento</Text>
+        <View style={{ flex: 1 }}>
 
-            <Text style={styles.partido}>Uruguay vs Argentina</Text>
+            {/* BOTÓN VOLVER */}
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => router.back()}
+            >
+                <Text style={styles.backText}>‹</Text>
+            </TouchableOpacity>
 
-            <Text style={styles.info}>15 de junio de 2026</Text>
+            <View style={styles.container}>
+                <Text style={styles.titulo}>Detalles del evento</Text>
 
-            <Text style={styles.info}>Estadio Centenario</Text>
+                <Text style={styles.partido}>
+                    {evento.paisLocal} vs {evento.paisVisitante}
+                </Text>
 
-            <View style={styles.componente}>
-                <View style={styles.tabsContainer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.tab,
-                            tabActiva === 'informacion' && styles.tabActiva,
-                        ]}
-                        onPress={() => setTabActiva('informacion')}
-                    >
-                        <Text
+                <Text style={styles.info}>
+                    {evento.fecha} - {evento.hora}
+                </Text>
+
+                <Text style={styles.info}>
+                    {evento.estadio}
+                </Text>
+
+                <View style={styles.componente}>
+                    <View style={styles.tabsContainer}>
+                        <TouchableOpacity
                             style={[
-                                styles.tabTexto,
-                                tabActiva === 'informacion' &&
-                                    styles.tabTextoActivo,
+                                styles.tab,
+                                tabActiva === 'informacion' && styles.tabActiva,
                             ]}
+                            onPress={() => setTabActiva('informacion')}
                         >
-                            Información
-                        </Text>
-                    </TouchableOpacity>
+                            <Text
+                                style={[
+                                    styles.tabTexto,
+                                    tabActiva === 'informacion' &&
+                                    styles.tabTextoActivo,
+                                ]}
+                            >
+                                Información
+                            </Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[
-                            styles.tab,
-                            tabActiva === 'sectores' && styles.tabActiva,
-                        ]}
-                        onPress={() => setTabActiva('sectores')}
-                    >
-                        <Text
+                        <TouchableOpacity
                             style={[
-                                styles.tabTexto,
-                                tabActiva === 'sectores' &&
-                                    styles.tabTextoActivo,
+                                styles.tab,
+                                tabActiva === 'sectores' && styles.tabActiva,
                             ]}
+                            onPress={() => setTabActiva('sectores')}
                         >
-                            Sectores
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                {tabActiva === 'informacion' ? (
-                    <>
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Capacidad total
+                            <Text
+                                style={[
+                                    styles.tabTexto,
+                                    tabActiva === 'sectores' &&
+                                    styles.tabTextoActivo,
+                                ]}
+                            >
+                                Sectores
                             </Text>
-                            <Text style={styles.valor}>60.000</Text>
-                        </View>
+                        </TouchableOpacity>
+                    </View>
 
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Entradas vendidas
+                    {tabActiva === 'informacion' ? (
+                        <>
+                            <View style={styles.fila}>
+                                <Text style={styles.label}>
+                                    Capacidad total
+                                </Text>
+
+                                <Text style={styles.valor}>
+                                    {capacidad}
+                                </Text>
+                            </View>
+                            <View style={styles.fila}>
+                                <Text style={styles.label}>
+                                    Entradas vendidas
+                                </Text>
+
+                                <Text style={styles.valor}>
+                                    {entradasVendidas}
+                                </Text>
+                            </View>
+
+                            <View style={styles.fila}>
+                                <Text style={styles.label}>
+                                    Entradas disponibles
+                                </Text>
+
+                                <Text style={styles.valor}>
+                                    {entradasDisponibles}
+                                </Text>
+                            </View>
+
+                            <View style={styles.fila}>
+                                <Text style={styles.label}>
+                                    Sectores habilitados
+                                </Text>
+
+                                <Text style={styles.valor}>
+                                    {sectoresHabilitados}
+                                </Text>
+                            </View>
+
+                            <View style={styles.fila}>
+                                <Text style={styles.label}>
+                                    Estado
+                                </Text>
+
+                                <Text
+                                    style={[
+                                        styles.valor,
+                                        {
+                                            color:
+                                                estadoEvento === 'Agotado'
+                                                    ? '#C62828'
+                                                    : '#16A34A',
+                                        },
+                                    ]}
+                                >
+                                    {estadoEvento}
+                                </Text>
+                            </View>
+                        </>
+                    ) : (
+                        <>
+                            {evento.sectores.A && (
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Sector A
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {evento.sectores.A.capacidad} lugares - USD {evento.sectores.A.precio}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {evento.sectores.B && (
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Sector B
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {evento.sectores.B.capacidad} lugares - USD {evento.sectores.B.precio}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {evento.sectores.C && (
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Sector C
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {evento.sectores.C.capacidad} lugares - USD {evento.sectores.C.precio}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {evento.sectores.D && (
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Sector D
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {evento.sectores.D.capacidad} lugares - USD {evento.sectores.D.precio}
+                                    </Text>
+                                </View>
+                            )}
+                        </>
+                    )}
+
+                    <View style={styles.botonesContainer}>
+                        <TouchableOpacity
+                            style={styles.botonEditar}
+                            onPress={() =>
+                                router.push({
+                                    pathname: '/administrador/editarEvento',
+                                    params: {
+                                        id: evento.id,
+                                    },
+                                })
+                            }
+                        >
+                            <Text style={styles.textoBoton}>
+                                Editar evento
                             </Text>
-                            <Text style={styles.valor}>45.000</Text>
-                        </View>
+                        </TouchableOpacity>
 
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Entradas disponibles
+                        <TouchableOpacity
+                            style={[
+                                styles.botonEliminar,
+                                entradasVendidas > 0 && {
+                                    backgroundColor: '#999',
+                                },
+                            ]}
+                            disabled={entradasVendidas > 0}
+                            onPress={borrarEvento}
+                        >
+                            <Text style={styles.textoBoton}>
+                                Eliminar evento
                             </Text>
-                            <Text style={styles.valor}>15.000</Text>
-                        </View>
-
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Sectores habilitados
+                        </TouchableOpacity>
+                        {entradasVendidas > 0 && (
+                            <Text
+                                style={{
+                                    color: '#C62828',
+                                    marginTop: 10,
+                                    textAlign: 'center',
+                                }}
+                            >
+                                No puede eliminarse porque ya tiene entradas vendidas.
                             </Text>
-                            <Text style={styles.valor}>4</Text>
-                        </View>
-
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>Estado</Text>
-                            <Text style={styles.valor}>Activo</Text>
-                        </View>
-                    </>
-                ) : (
-                    <>
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Tribuna Olímpica
-                            </Text>
-                            <Text style={styles.valor}>20.000</Text>
-                        </View>
-
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Tribuna América
-                            </Text>
-                            <Text style={styles.valor}>15.000</Text>
-                        </View>
-
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Tribuna Colombes
-                            </Text>
-                            <Text style={styles.valor}>12.500</Text>
-                        </View>
-
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>
-                                Tribuna Ámsterdam
-                            </Text>
-                            <Text style={styles.valor}>12.500</Text>
-                        </View>
-                    </>
-                )}
-
-                <View style={styles.botonesContainer}>
-                    <TouchableOpacity style={styles.botonEditar}>
-                        <Text style={styles.textoBoton}>
-                            Editar evento
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.botonEliminar}>
-                        <Text style={styles.textoBoton}>
-                            Eliminar evento
-                        </Text>
-                    </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
             </View>
         </View>
@@ -144,6 +301,25 @@ export default function Eventos() {
 }
 
 const styles = StyleSheet.create({
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: 15,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    backText: {
+        color: '#FFFFFF',
+        fontSize: 28,
+        fontWeight: 'bold',
+        marginTop: -2,
+    },
     container: {
         flex: 1,
         backgroundColor: '#051F3B',

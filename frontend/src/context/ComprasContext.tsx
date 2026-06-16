@@ -29,6 +29,7 @@ export function ComprasProvider({ children }: any) {
                     ? {
                         ...c,
                         usuarioId: nuevoUsuarioId,
+                        transferido: true
                     }
                     : c
             )

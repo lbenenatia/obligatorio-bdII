@@ -1,52 +1,100 @@
+import { cerrarSesion, getUsuarioLogueado } from '@/data/sesion';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Perfil() {
     const router = useRouter();
+
+    const usuario = getUsuarioLogueado();
+
+    if (!usuario) {
+        return (
+            <View style={styles.container}>
+                <Text style={{ color: '#FFF' }}>
+                    No hay sesión iniciada
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
 
             {/* HEADER */}
             <FontAwesome name="user-circle" size={90} color="#FFFFFF" />
-            <Text style={styles.nombre}>Juan Pérez</Text>
+
+            <Text style={styles.nombre}>
+                {usuario.nombre}
+            </Text>
 
             {/* CARD */}
             <View style={styles.centerContainer}>
                 <View style={styles.card}>
 
-                    <Text style={styles.cardTitle}>Información personal</Text>
+                    <Text style={styles.cardTitle}>
+                        Información del usuario
+                    </Text>
 
                     {/* EMAIL */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Correo electrónico</Text>
-                        <Text style={styles.value}>juanperez@email.com</Text>
+                        <Text style={styles.value}>{usuario.email}</Text>
                     </View>
 
-                    {/* TELÉFONO */}
+                    {/* ROL */}
                     <View style={styles.block}>
-                        <Text style={styles.label}>Teléfono</Text>
-                        <Text style={styles.value}>+598 99 123 456</Text>
+                        <Text style={styles.label}>Rol</Text>
+                        <Text style={styles.value}>{usuario.rol}</Text>
+                    </View>
+
+                    {/* TELÉFONOS */}
+                    <View style={styles.block}>
+                        <Text style={styles.label}>Teléfonos</Text>
+                        {usuario.telefonos.map((tel, i) => (
+                            <Text key={i} style={styles.value}>
+                                {tel}
+                            </Text>
+                        ))}
                     </View>
 
                     {/* DOCUMENTO */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Documento</Text>
-                        <Text style={styles.value}>CI - Uruguay</Text>
-                        <Text style={styles.subvalue}>5.123.456-7</Text>
+                        <Text style={styles.value}>
+                            {usuario.tipoDocumento || 'Sin datos'} - {usuario.paisDocumento || ''}
+                        </Text>
+                        <Text style={styles.subvalue}>
+                            {usuario.numeroDocumento || ''}
+                        </Text>
                     </View>
 
                     {/* DIRECCIÓN */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Dirección</Text>
-                        <Text style={styles.value}>Uruguay</Text>
-                        <Text style={styles.subvalue}>Melo</Text>
-                        <Text style={styles.subvalue}>Saravia 123 - CP 37000</Text>
+                        <Text style={styles.value}>{usuario.pais}</Text>
+                        <Text style={styles.subvalue}>{usuario.localidad}</Text>
+                        <Text style={styles.subvalue}>
+                            {usuario.calle} {usuario.numeroPuerta}
+                        </Text>
+                        <Text style={styles.subvalue}>
+                            CP: {usuario.cp}
+                        </Text>
                     </View>
+
                 </View>
-                <TouchableOpacity style={styles.botonCerrarSesion} onPress={() => router.push('/')}>
+
+                <TouchableOpacity
+                    style={styles.botonCerrarSesion}
+                    onPress={() => {
+                        cerrarSesion();
+                        router.replace('/');
+                    }}
+                >
                     <FontAwesome name="sign-out" size={18} color="#FFFFFF" />
-                    <Text style={styles.textoCerrarSesion}>Cerrar sesión</Text>
+                    <Text style={styles.textoCerrarSesion}>
+                        Cerrar sesión
+                    </Text>
                 </TouchableOpacity>
             </View>
 
