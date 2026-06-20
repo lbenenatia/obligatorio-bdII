@@ -10,71 +10,63 @@ export default function ResultadoValidacion() {
     const esInvalida = estado === 'invalida';
     const esUsada = estado === 'usada';
 
-    return (
-        <View
-            style={[
-                styles.container,
-                esValida && { backgroundColor: '#DCFCE7' },
-                esInvalida && { backgroundColor: '#FEE2E2' },
-                esUsada && { backgroundColor: '#FEF3C7' },
-            ]}
-        >
+    const color =
+        esValida ? '#22C55E' :
+        esInvalida ? '#EF4444' :
+        '#F59E0B';
 
-            {/* ICONO */}
-            <View
-                style={[
-                    styles.icono,
-                    esValida && { backgroundColor: '#22C55E' },
-                    esInvalida && { backgroundColor: '#EF4444' },
-                    esUsada && { backgroundColor: '#F59E0B' },
-                ]}
-            >
-                {esValida && <Ionicons name="checkmark" size={60} color="#fff" />}
-                {esInvalida && <Ionicons name="close" size={60} color="#fff" />}
-                {esUsada && <Ionicons name="warning" size={60} color="#fff" />}
+    const titulo =
+        esValida ? 'Entrada válida' :
+        esInvalida ? 'Entrada inválida' :
+        'Entrada ya utilizada';
+
+    const sub =
+        esValida ? 'Puede ingresar al evento' :
+        esInvalida ? 'Código QR inválido' :
+        'Esta entrada ya fue escaneada';
+
+    const icon =
+        esValida ? 'checkmark' :
+        esInvalida ? 'close' :
+        'warning';
+
+    return (
+        <View style={[styles.container, { backgroundColor: `${color}15` }]}>
+
+            <View style={[styles.icono, { backgroundColor: color }]}>
+                <Ionicons name={icon} size={50} color="#fff" />
             </View>
 
-            {/* TITULO */}
-            <Text style={styles.titulo}>
-                {esValida && 'Entrada válida'}
-                {esInvalida && 'Entrada inválida'}
-                {esUsada && 'Entrada ya utilizada'}
-            </Text>
+            <Text style={styles.titulo}>{titulo}</Text>
 
-            {/* SUBMENSAJE */}
-            <Text style={styles.submensaje}>
-                {esValida && 'La entrada es válida y puede ingresar al evento.'}
-                {esInvalida && 'El código QR no es válido. Verifica e intenta nuevamente.'}
-                {esUsada && 'Esta entrada ya fue utilizada anteriormente.'}
-            </Text>
+            <Text style={styles.submensaje}>{sub}</Text>
 
-            {/* CARD */}
             <View style={styles.card}>
 
-                <Text style={styles.tituloPartido}>
-                    Equipo A vs Equipo B
-                </Text>
+                <View style={styles.headerCard}>
+                    <Text style={styles.partido}>Equipo A vs Equipo B</Text>
 
-                <Text style={styles.fecha}>
-                    12/06/2026
-                </Text>
+                    <View style={[styles.badge, { backgroundColor: `${color}20` }]}>
+                        <Text style={[styles.badgeText, { color }]}>
+                            {estado?.toString().toUpperCase()}
+                        </Text>
+                    </View>
+                </View>
 
-                <Text style={styles.estadio}>
-                    Estadio Centenario
-                </Text>
+                <Text style={styles.meta}>📅 12/06/2026</Text>
+                <Text style={styles.meta}>🏟 Estadio Centenario</Text>
 
-                {/* SOLO VALIDA TIENE DETALLE COMPLETO */}
+                <View style={styles.divisor} />
+
                 {esValida && (
                     <>
-                        <View style={styles.divisor} />
-
                         <View style={styles.fila}>
                             <Text style={styles.label}>Sector</Text>
-                            <Text style={styles.valor}>Sector B</Text>
+                            <Text style={styles.valor}>B</Text>
                         </View>
 
                         <View style={styles.fila}>
-                            <Text style={styles.label}>Fila / Asiento</Text>
+                            <Text style={styles.label}>Asiento</Text>
                             <Text style={styles.valor}>15 / 12</Text>
                         </View>
 
@@ -86,11 +78,11 @@ export default function ResultadoValidacion() {
                 )}
 
                 <TouchableOpacity
-                    style={styles.boton}
+                    style={[styles.boton, { backgroundColor: color }]}
                     onPress={() => router.replace('/funcionario/(tabs)/escanearEntrada')}
                 >
                     <Text style={styles.textoBoton}>
-                        Volver a escanear
+                        Escanear otra entrada
                     </Text>
                 </TouchableOpacity>
 
@@ -98,6 +90,7 @@ export default function ResultadoValidacion() {
         </View>
     );
 }
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -106,61 +99,78 @@ const styles = StyleSheet.create({
     },
 
     icono: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 90,
+        height: 90,
+        borderRadius: 45,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 50,
+        marginTop: 60,
         marginBottom: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 5,
     },
 
     titulo: {
-        fontSize: 22,
-        fontWeight: 'bold',
+        fontSize: 24,
+        fontWeight: '800',
         color: '#111827',
-        marginBottom: 8,
     },
 
     submensaje: {
         fontSize: 14,
+        color: '#6B7280',
         textAlign: 'center',
-        color: '#374151',
+        marginTop: 4,
         marginBottom: 20,
-        paddingHorizontal: 10,
     },
 
     card: {
         width: '100%',
         backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 14,
+        padding: 18,
+        borderRadius: 18,
         shadowColor: '#000',
         shadowOpacity: 0.08,
-        shadowRadius: 10,
-        elevation: 4,
+        shadowRadius: 12,
+        elevation: 6,
     },
 
-    tituloPartido: {
+    headerCard: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
+    partido: {
         fontSize: 18,
+        fontWeight: '700',
+        color: '#111827',
+        flex: 1,
+    },
+
+    badge: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 999,
+    },
+
+    badgeText: {
+        fontSize: 11,
         fontWeight: '700',
     },
 
-    fecha: {
+    meta: {
         fontSize: 13,
         color: '#6B7280',
-    },
-
-    estadio: {
-        fontSize: 13,
-        color: '#6B7280',
-        marginBottom: 10,
+        marginTop: 4,
     },
 
     divisor: {
         height: 1,
         backgroundColor: '#E5E7EB',
-        marginVertical: 10,
+        marginVertical: 12,
     },
 
     fila: {
@@ -174,15 +184,14 @@ const styles = StyleSheet.create({
     },
 
     valor: {
-        fontWeight: '600',
+        fontWeight: '700',
         color: '#111827',
     },
 
     boton: {
-        marginTop: 12,
-        backgroundColor: '#1E90FF',
+        marginTop: 14,
         paddingVertical: 12,
-        borderRadius: 10,
+        borderRadius: 12,
         alignItems: 'center',
     },
 

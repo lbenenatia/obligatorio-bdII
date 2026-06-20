@@ -1,34 +1,13 @@
 import { useCompras } from '@/context/ComprasContext';
 import { useEventos } from '@/context/EventosContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
 
 export default function CompraScreen() {
     const { eventos } = useEventos();
     const { compras } = useCompras();
     const router = useRouter();
-    const entradasVendidas = (
-        sectorId: string
-    ) => {
-        return compras
-            .filter(
-                c =>
-                    c.eventoId === Number(id) &&
-                    c.sector === sectorId
-            )
-            .reduce(
-                (acc, c) => acc + c.cantidad,
-                0
-            );
-    };
-    const disponibles = (
-        capacidad: number,
-        sectorId: string
-    ) => {
-        return capacidad - entradasVendidas(sectorId);
-    };
 
     const {
         id,
@@ -37,13 +16,27 @@ export default function CompraScreen() {
         time,
         estadio,
     } = useLocalSearchParams();
-    const evento = eventos.find(
-        e => e.id === Number(id)
-    );
-    const sectoresDisponibles =
-        evento?.sectores
-            ? Object.entries(evento.sectores)
-            : [];
+
+    const evento = eventos.find(e => e.id === Number(id));
+
+    const entradasVendidas = (sectorId: string) => {
+        return compras
+            .filter(
+                c =>
+                    c.eventoId === Number(id) &&
+                    c.sector === sectorId
+            )
+            .reduce((acc, c) => acc + c.cantidad, 0);
+    };
+
+    const disponibles = (capacidad: number, sectorId: string) => {
+        return capacidad - entradasVendidas(sectorId);
+    };
+
+    const sectoresDisponibles = evento?.sectores
+        ? Object.entries(evento.sectores)
+        : [];
+
     const [cantidad, setCantidad] = useState(1);
 
     const [sectorSeleccionado, setSectorSeleccionado] =
@@ -54,17 +47,15 @@ export default function CompraScreen() {
         sectorSeleccionado as keyof typeof evento.sectores
         ];
 
+    const maxDisponibles = sectorActual
+        ? disponibles(sectorActual.capacidad, sectorSeleccionado)
+        : 0;
+
+    const sinStock = maxDisponibles === 0;
+
     const total = useMemo(() => {
         return cantidad * (sectorActual?.precio ?? 0);
     }, [cantidad, sectorActual]);
-
-    const maxDisponibles =
-        sectorActual
-            ? disponibles(
-                sectorActual.capacidad,
-                sectorSeleccionado
-            )
-            : 0;
 
     const aumentar = () => {
         if (cantidad < maxDisponibles) {
@@ -76,10 +67,16 @@ export default function CompraScreen() {
         setCantidad(prev => Math.max(1, prev - 1));
     };
 
+    // 🔥 Ajustar cantidad si cambia sector o stock
+    useEffect(() => {
+        if (cantidad > maxDisponibles) {
+            setCantidad(maxDisponibles > 0 ? maxDisponibles : 1);
+        }
+    }, [sectorSeleccionado, maxDisponibles]);
+
     return (
-        <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.container}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+
             <View style={styles.imageContainer}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -101,28 +98,27 @@ export default function CompraScreen() {
                 <Text style={styles.subtitle}>{time} - {estadio}</Text>
             </View>
 
+            {/* SECTORES */}
             <View style={styles.optionsContainer}>
                 {sectoresDisponibles.map(([idSector, info]) => {
-                    const quedan =
-                        disponibles(
-                            info.capacidad,
-                            idSector
-                        );
+                    const quedan = disponibles(info.capacidad, idSector);
+                    const sinStockSector = quedan === 0;
 
                     return (
                         <TouchableOpacity
                             key={idSector}
                             style={[
                                 styles.optionCard,
-                                sectorSeleccionado === idSector
+                                sinStockSector && styles.optionCardDisabled,
+                                sectorSeleccionado === idSector && !sinStockSector
                                     ? styles.optionCardSelected
                                     : styles.optionCardInactive,
                             ]}
-                            onPress={() =>
-                                setSectorSeleccionado(
-                                    idSector as any
-                                )
-                            }
+                            onPress={() => {
+                                if (sinStockSector) return;
+                                setSectorSeleccionado(idSector as any);
+                            }}
+                            disabled={sinStockSector}
                         >
                             <View style={styles.optionTextContainer}>
                                 <Text style={styles.optionTitle}>
@@ -142,6 +138,7 @@ export default function CompraScreen() {
                 })}
             </View>
 
+            {/* CONTADOR */}
             <View style={styles.counterContainer}>
                 <TouchableOpacity
                     style={styles.counterButton}
@@ -160,6 +157,7 @@ export default function CompraScreen() {
                 </TouchableOpacity>
             </View>
 
+            {/* RESUMEN */}
             <View style={styles.summaryCard}>
                 <Text style={styles.summaryText}>
                     Sub Total:{" "}
@@ -168,9 +166,20 @@ export default function CompraScreen() {
                     </Text>
                 </Text>
 
+                {sinStock && (
+                    <Text style={styles.errorText}>
+                        No hay entradas disponibles en este sector
+                    </Text>
+                )}
+
                 <TouchableOpacity
-                    style={styles.summaryButton}
-                    onPress={() =>
+                    style={[
+                        styles.summaryButton,
+                        sinStock && { opacity: 0.5 },
+                    ]}
+                    onPress={() => {
+                        if (sinStock) return;
+
                         router.push({
                             pathname: '/pago',
                             params: {
@@ -183,8 +192,9 @@ export default function CompraScreen() {
                                 cantidad: String(cantidad),
                                 precio: String(sectorActual?.precio ?? 0),
                             },
-                        })
-                    }
+                        });
+                    }}
+                    disabled={sinStock}
                 >
                     <Text style={styles.summaryButtonText}>
                         Continuar compra
@@ -252,19 +262,22 @@ const styles = StyleSheet.create({
         textAlign: 'left',
         marginTop: -6,
     },
+
     optionsContainer: {
-        marginTop: -10,
-        gap: 16,
+        marginTop: 10,
+        paddingHorizontal: 16,
+        gap: 12,
     },
+
     optionCard: {
-        width: '90%',
-        height: 110,
-        alignSelf: 'center',
-        borderRadius: 20,
-        paddingHorizontal: 20,
+        width: '100%',
+        borderRadius: 18,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 5,
+
         borderWidth: 2,
     },
 
@@ -276,6 +289,18 @@ const styles = StyleSheet.create({
     optionCardInactive: {
         backgroundColor: 'rgba(185, 191, 210, 0.3)',
         borderColor: 'rgba(68, 68, 69, 0.4)',
+    },
+
+    optionCardDisabled: {
+        opacity: 0.4,
+    },
+
+    errorText: {
+        color: '#fff',
+        marginTop: 10,
+        fontSize: 13,
+        textAlign: 'center',
+        marginBottom: 10,
     },
 
     radioContainer: {
@@ -307,27 +332,28 @@ const styles = StyleSheet.create({
     },
 
     optionTitle: {
-        fontSize: 20,
-        fontWeight: 'regular',
+        fontSize: 18,
+        fontWeight: '600',
         color: '#000',
     },
 
     optionSubtitle: {
-        fontSize: 20,
+        fontSize: 14,
         color: '#374151',
-        marginTop: 4,
+        marginTop: 2,
     },
 
     optionPrice: {
-        fontSize: 20,
-        fontWeight: 'regular',
+        fontSize: 14,
+        fontWeight: '600',
         color: '#374151',
     },
+
     counterContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 20,
+        marginTop: 24,
     },
 
     counterButton: {
@@ -353,16 +379,17 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#000000',
     },
+
     summaryCard: {
         width: '90%',
-        height: 126,
         alignSelf: 'center',
         backgroundColor: '#1958D0',
         borderRadius: 20,
 
-        marginTop: 15,
+        marginTop: 24,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
 
-        justifyContent: 'center',
         alignItems: 'center',
     },
 
@@ -370,7 +397,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 25,
         fontWeight: 'regular',
-        marginBottom: 15,
+        
     },
 
     summaryTextBold: {
@@ -378,15 +405,11 @@ const styles = StyleSheet.create({
     },
 
     summaryButton: {
-        width: 250,
+        width: '100%',
         height: 45,
-
         borderWidth: 2,
         borderColor: '#FFFFFF',
         borderRadius: 12,
-
-        backgroundColor: 'transparent',
-
         justifyContent: 'center',
         alignItems: 'center',
     },

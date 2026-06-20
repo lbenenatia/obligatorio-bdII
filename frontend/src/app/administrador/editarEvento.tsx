@@ -3,6 +3,7 @@ import { useEventos } from '@/context/EventosContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    Alert,
     ScrollView,
     StyleSheet,
     Text,
@@ -62,6 +63,54 @@ export default function NuevoEvento() {
         !!evento?.sectores.D
     );
     const guardarCambios = () => {
+        if (
+            !paisLocal.trim() ||
+            !paisVisitante.trim() ||
+            !fecha.trim() ||
+            !hora.trim() ||
+            !estadio
+        ) {
+            Alert.alert(
+                'Campos incompletos',
+                'Debes completar todos los campos.'
+            );
+            return;
+        }
+
+        const regexFecha = /^\d{2}\/\d{2}\/\d{4}$/;
+        if (!regexFecha.test(fecha)) {
+            Alert.alert(
+                'Fecha inválida',
+                'La fecha debe tener formato DD/MM/AAAA.'
+            );
+            return;
+        }
+
+        const regexHora = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (!regexHora.test(hora)) {
+            Alert.alert(
+                'Hora inválida',
+                'La hora debe tener formato HH:MM.'
+            );
+            return;
+        }
+
+        if (paisLocal.trim() === paisVisitante.trim()) {
+            Alert.alert(
+                'Equipos inválidos',
+                'El país local y visitante no pueden ser iguales.'
+            );
+            return;
+        }
+
+        if (!sectorA && !sectorB && !sectorC && !sectorD) {
+            Alert.alert(
+                'Sectores',
+                'Debes habilitar al menos un sector.'
+            );
+            return;
+        }
+
         if (!evento) return;
 
         editarEvento({
@@ -91,13 +140,21 @@ export default function NuevoEvento() {
             },
         });
 
-        router.push('/administrador/eventos');
+        Alert.alert(
+            'Éxito',
+            'Evento actualizado correctamente.',
+            [
+                {
+                    text: 'Aceptar',
+                    onPress: () =>
+                        router.push('/administrador/eventos'),
+                },
+            ]
+        );
     };
-
     return (
         <View style={{ flex: 1 }}>
 
-            {/* BOTÓN VOLVER */}
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => router.back()}

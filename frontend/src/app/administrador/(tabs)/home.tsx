@@ -10,20 +10,16 @@ export default function Perfil() {
     const usuario = getUsuarioLogueado();
     const { compras } = useCompras();
 
-    // 📅 EVENTOS ACTIVOS (por ahora todos)
     const { eventos } = useEventos();
     const eventosActivos = eventos.length;
 
-    // 🎟 ENTRADAS VENDIDAS
     const entradasVendidas = compras.reduce(
         (acc, c) => acc + c.cantidad,
         0
     );
 
-    // 👤 USUARIOS
     const usuariosRegistrados = usuariosMock.length;
 
-    // 🔁 TRANSFERENCIAS
     const transferencias = compras.filter(
         c => c.transferido === true
     ).length;
@@ -48,7 +44,6 @@ export default function Perfil() {
 
             <View style={styles.grid}>
 
-                {/* EVENTOS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
                         <MaterialCommunityIcons
@@ -64,7 +59,6 @@ export default function Perfil() {
                     </Text>
                 </View>
 
-                {/* ENTRADAS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
                         <Ionicons
@@ -80,7 +74,6 @@ export default function Perfil() {
                     </Text>
                 </View>
 
-                {/* USUARIOS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#EDE9FE' }]}>
                         <Ionicons
@@ -98,7 +91,6 @@ export default function Perfil() {
                     </Text>
                 </View>
 
-                {/* TRANSFERENCIAS */}
                 <View style={styles.card}>
                     <View style={[styles.iconCircle, { backgroundColor: '#FFEDD5' }]}>
                         <Ionicons
@@ -164,7 +156,7 @@ const styles = StyleSheet.create({
 
     card: {
         width: '47%',
-        aspectRatio: 0.9, // mantiene proporción automáticamente
+        aspectRatio: 0.9, 
         backgroundColor: '#FFFFFF',
         borderRadius: 22,
         padding: 18,

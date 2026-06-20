@@ -6,6 +6,7 @@ type EventoContextType = {
     agregarEvento: (evento: Evento) => void;
     editarEvento: (eventoActualizado: Evento) => void;
     eliminarEvento: (id: number) => void;
+    obtenerProximoEvento: () => Evento | null;
 };
 
 const EventoContext = createContext<EventoContextType>(
@@ -36,18 +37,36 @@ export function EventoProvider({
             prev.filter((evento) => evento.id !== id)
         );
     };
+    const obtenerProximoEvento = () => {
+        const ahora = new Date();
+
+        const futuros = eventos
+            .map(e => {
+                const [dia, mes, anio] = e.fecha.split('/');
+
+                return {
+                    ...e,
+                    fechaDate: new Date(`${anio}-${mes}-${dia}T${e.hora}`),
+                };
+            })
+            .filter(e => e.fechaDate > ahora)
+            .sort((a, b) => a.fechaDate.getTime() - b.fechaDate.getTime());
+
+        return futuros[0] || null;
+    };
     return (
-            <EventoContext.Provider
-                value={{
-                    eventos,
-                    agregarEvento,
-                    editarEvento,
-                    eliminarEvento,
-                }}
-            >
-                {children}
-            </EventoContext.Provider>
-        );
+        <EventoContext.Provider
+            value={{
+                eventos,
+                agregarEvento,
+                editarEvento,
+                eliminarEvento,
+                obtenerProximoEvento,
+            }}
+        >
+            {children}
+        </EventoContext.Provider>
+    );
 }
 
 export const useEventos = () => useContext(EventoContext);

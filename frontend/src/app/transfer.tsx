@@ -1,4 +1,5 @@
-import { useCompras } from '@/context/ComprasContext';
+import { useTransferencias } from '@/context/TransferenciasContext';
+import { getUsuarioLogueado } from '@/data/sesion';
 import { usuariosMock } from '@/data/usuarios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -9,56 +10,75 @@ import {
 import QRCode from 'react-native-qrcode-svg';
 
 export default function Transfer() {
+    const router = useRouter();
+    const usuario = getUsuarioLogueado();
+    const { agregarTransferencia } = useTransferencias();
+
+    const params = useLocalSearchParams();
+
+    const compraId = Array.isArray(params.id) ? params.id[0] : params.id;
+    const match = Array.isArray(params.match) ? params.match[0] : params.match;
+    const date = Array.isArray(params.date) ? params.date[0] : params.date;
+    const time = Array.isArray(params.time) ? params.time[0] : params.time;
+    const estadio = Array.isArray(params.estadio) ? params.estadio[0] : params.estadio;
+    const sector = Array.isArray(params.sector) ? params.sector[0] : params.sector;
+    const cantidad = Array.isArray(params.cantidad) ? params.cantidad[0] : params.cantidad;
+
     const [seconds, setSeconds] = useState(30);
     const [qrValue, setQrValue] = useState(`ticket-${Date.now()}`);
     const [query, setQuery] = useState('');
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [showDropdown, setShowDropdown] = useState(false);
-    const { transferirCompra } = useCompras();
-    const {
-        id,
-        match,
-        date,
-        time,
-        estadio,
-        sector,
-        cantidad,
-    } = useLocalSearchParams();
 
     const generarNuevoQR = () => {
         setQrValue(`ticket-${Date.now()}`);
     };
 
-    const resultados = usuariosMock.filter(
-        u =>
-            u.email.toLowerCase().includes(query.toLowerCase()) &&
-            u.id !== 1
-    );
     useEffect(() => {
         const interval = setInterval(() => {
-            setSeconds((prev) => {
+            setSeconds(prev => {
                 if (prev <= 1) {
                     generarNuevoQR();
                     return 30;
                 }
-
                 return prev - 1;
             });
         }, 1000);
 
         return () => clearInterval(interval);
     }, []);
-    const router = useRouter();
-    const confirmarTransferencia = () => {
-        if (!selectedUser) return;
 
-        transferirCompra(
-            String(id),
-            selectedUser.id
-        );
+    const resultados = usuariosMock.filter(
+        u =>
+            u.email.toLowerCase().includes(query.toLowerCase()) &&
+            u.id !== usuario?.id
+    );
+
+    const confirmarTransferencia = () => {
+        if (!selectedUser || !usuario || !compraId) return;
+
+        agregarTransferencia({
+            id: Date.now().toString(),
+            compraId: String(compraId),
+            deUsuarioId: Number(usuario.id),
+            deUsuarioNombre: usuario.nombre, // 👈 TE FALTABA ESTO
+            aUsuarioId: Number(selectedUser.id),
+            estado: 'PENDIENTE',
+        });
 
         router.push('/transferenciaAprobada');
     };
+
+    if (!compraId) {
+        return (
+            <View style={styles.container}>
+                <Text style={{ color: '#fff' }}>
+                    No se encontró la compra
+                </Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -116,7 +136,7 @@ export default function Transfer() {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{
                         alignItems: 'center',
-                        paddingBottom: 30, 
+                        paddingBottom: 30,
                     }}
                 >
                     <View style={styles.headerTextContainer}>
@@ -133,7 +153,6 @@ export default function Transfer() {
                         </Text>
                     </View>
 
-                    {/* Buscador */}
                     <View style={styles.searchContainer}>
                         <Text style={styles.searchIcon}>⌕</Text>
 
@@ -247,7 +266,7 @@ const styles = StyleSheet.create({
     logo: {
         width: '50%',
         height: 100,
-        marginTop: 80, 
+        marginTop: 80,
     },
 
     mainCard: {
@@ -332,7 +351,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#FFFFFF',
 
-        marginTop: -25, 
+        marginTop: -25,
 
         paddingVertical: 20,
         alignItems: 'center',
@@ -344,7 +363,7 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: -4, 
+            height: -4,
         },
         shadowOpacity: 0.12,
         shadowRadius: 8,

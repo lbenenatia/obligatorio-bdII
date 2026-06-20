@@ -17,7 +17,6 @@ export default function MisEntradas() {
     const { compras } = useCompras();
     const router = useRouter();
 
-    // Convertimos compras → entradas (SIN cambiar estética)
     const entradas = compras
         .filter(c => c.usuarioId === usuario?.id)
         .map(c => ({
@@ -29,17 +28,16 @@ export default function MisEntradas() {
             estadio: c.estadio,
             sector: c.sector,
             asiento: `${c.sector}-${c.id.slice(-3)}`,
-            estado: 'ACTIVA',
+            estado: c.transferido ? 'TRANSFERIDA' : 'ACTIVA',
         }));
-
     const entradasActivas = entradas.filter(e => e.estado === 'ACTIVA');
-    const entradasUsadas = entradas.filter(e => e.estado === 'USADA');
+    const entradasTransferidas = entradas.filter(e => e.estado === 'TRANSFERIDA');
 
     return (
         <View style={styles.container}>
+
             <View style={styles.header}>
                 <Text style={styles.title}>Mis entradas</Text>
-
                 <Text style={styles.subtitle}>
                     Aquí puedes ver todas las entradas que has comprado.
                 </Text>
@@ -50,13 +48,8 @@ export default function MisEntradas() {
                     style={[styles.tab, tab === 'proximos' && styles.activeTab]}
                     onPress={() => setTab('proximos')}
                 >
-                    <Text
-                        style={[
-                            styles.tabText,
-                            tab === 'proximos' && styles.activeTabText,
-                        ]}
-                    >
-                        Próximos eventos
+                    <Text style={[styles.tabText, tab === 'proximos' && styles.activeTabText]}>
+                        Activas
                     </Text>
                 </TouchableOpacity>
 
@@ -64,13 +57,8 @@ export default function MisEntradas() {
                     style={[styles.tab, tab === 'historial' && styles.activeTab]}
                     onPress={() => setTab('historial')}
                 >
-                    <Text
-                        style={[
-                            styles.tabText,
-                            tab === 'historial' && styles.activeTabText,
-                        ]}
-                    >
-                        Historial
+                    <Text style={[styles.tabText, tab === 'historial' && styles.activeTabText]}>
+                        Transferidas
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -80,7 +68,7 @@ export default function MisEntradas() {
                 {tab === 'proximos' &&
                     (entradasActivas.length === 0 ? (
                         <Text style={styles.emptyText}>
-                            No tienes entradas próximas
+                            No tienes entradas activas
                         </Text>
                     ) : (
                         entradasActivas.map(e => (
@@ -103,10 +91,6 @@ export default function MisEntradas() {
                                     })
                                 }
                             >
-                                <View style={styles.cardHeader}>
-                                    <Text style={styles.badge}>PRÓXIMO</Text>
-                                </View>
-
                                 <Text style={styles.matchTitle}>
                                     {e.equipoLocal} vs {e.equipoVisitante}
                                 </Text>
@@ -116,23 +100,39 @@ export default function MisEntradas() {
                                 <Text style={styles.info}>📍 {e.estadio}</Text>
 
                                 <View style={styles.bottomRow}>
-                                    <View style={styles.status}>
-                                        <Text style={styles.statusText}>Activa</Text>
-                                    </View>
-
+                                    <Text style={styles.statusText}>Activa</Text>
                                     <Text style={styles.arrow}>›</Text>
                                 </View>
                             </TouchableOpacity>
                         ))
                     ))}
+
                 {tab === 'historial' &&
-                    (entradasUsadas.length === 0 ? (
+                    (entradasTransferidas.length === 0 ? (
                         <Text style={styles.emptyText}>
-                            No tienes entradas usadas
+                            No tienes entradas transferidas
                         </Text>
                     ) : (
-                        entradasUsadas.map(e => (
-                            <TouchableOpacity key={e.id} style={styles.ticketCard}>
+                        entradasTransferidas.map(e => (
+                            <TouchableOpacity
+                                key={e.id}
+                                style={styles.ticketCard}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/entrada',
+                                        params: {
+                                            id: e.id.toString(),
+                                            equipoLocal: e.equipoLocal,
+                                            equipoVisitante: e.equipoVisitante,
+                                            fecha: e.fecha,
+                                            time: e.time,
+                                            estadio: e.estadio,
+                                            sector: e.sector,
+                                            asiento: e.asiento,
+                                        },
+                                    })
+                                }
+                            >
                                 <Text style={styles.matchTitle}>
                                     {e.equipoLocal} vs {e.equipoVisitante}
                                 </Text>
@@ -142,16 +142,9 @@ export default function MisEntradas() {
                                 <Text style={styles.info}>📍 {e.estadio}</Text>
 
                                 <View style={styles.bottomRow}>
-                                    <View style={[styles.status, styles.usedStatus]}>
-                                        <Text
-                                            style={[
-                                                styles.statusText,
-                                                styles.usedStatusText,
-                                            ]}
-                                        >
-                                            Utilizada
-                                        </Text>
-                                    </View>
+                                    <Text style={styles.statusText}>
+                                        Transferida
+                                    </Text>
                                 </View>
                             </TouchableOpacity>
                         ))

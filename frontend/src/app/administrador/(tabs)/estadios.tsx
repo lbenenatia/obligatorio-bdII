@@ -48,7 +48,6 @@ export default function Estadios() {
     );
     return (
         <View style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.title}>Estadios</Text>
 
@@ -58,7 +57,6 @@ export default function Estadios() {
                 </TouchableOpacity>
             </View>
 
-            {/* Buscador */}
             <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color="#6B7280" />
                 <TextInput
@@ -70,17 +68,14 @@ export default function Estadios() {
                 />
             </View>
 
-            {/* Lista */}
             {estadiosFiltrados.map((estadio) => {
 
-                // 👇 ACA VA (este es el lugar correcto)
                 const tieneEventosAsociados = eventos.some(
                     e => e.estadio === estadio.nombre
                 );
 
                 return (
                     <View key={estadio.id} style={styles.card}>
-                        {/* IMAGEN A LA IZQUIERDA */}
                         <View style={styles.cardImageContainer}>
                             <Image
                                 source={require('../../../../assets/images/estadio.png')}
@@ -89,7 +84,6 @@ export default function Estadios() {
                             />
                         </View>
 
-                        {/* TEXTO A LA DERECHA */}
                         <View style={styles.cardContent}>
                             <Text style={styles.nombre}>
                                 {estadio.nombre}
@@ -104,7 +98,6 @@ export default function Estadios() {
                             </Text>
                         </View>
 
-                        {/* BOTÓN EDITAR */}
                         <View style={styles.botones}>
                             <TouchableOpacity
                                 style={[

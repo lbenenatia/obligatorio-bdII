@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+    Alert,
     Modal,
     ScrollView,
     StyleSheet,
@@ -40,18 +41,106 @@ export default function EditarEstadio() {
 
     const paises = ['México', 'Estados Unidos', 'Canadá'];
     const guardarEstadio = () => {
-        if (!nombre || !pais || !ciudad || !capacidad) return;
+        if (!nombre.trim()) {
+            Alert.alert('Error', 'Ingrese el nombre del estadio');
+            return;
+        }
 
-        const estadioActual = estadios.find(e => e.id === Number(id));
-        if (!estadioActual) return;
+        if (!pais) {
+            Alert.alert('Error', 'Seleccione un país');
+            return;
+        }
+
+        if (!ciudad.trim()) {
+            Alert.alert('Error', 'Ingrese la ciudad');
+            return;
+        }
+
+        if (!capacidad.trim()) {
+            Alert.alert('Error', 'Ingrese la capacidad total');
+            return;
+        }
+
+        const capacidadTotal = Number(capacidad);
+
+        if (isNaN(capacidadTotal) || capacidadTotal <= 0) {
+            Alert.alert(
+                'Error',
+                'La capacidad total debe ser un número mayor a 0'
+            );
+            return;
+        }
+
+        const capacidades = [
+            Number(capacidadA || 0),
+            Number(capacidadB || 0),
+            Number(capacidadC || 0),
+            Number(capacidadD || 0),
+        ];
+
+        if (capacidades.some(cap => cap < 0)) {
+            Alert.alert(
+                'Error',
+                'Las capacidades de los sectores no pueden ser negativas'
+            );
+            return;
+        }
+
+        const precios = [
+            Number(precioA || 0),
+            Number(precioB || 0),
+            Number(precioC || 0),
+            Number(precioD || 0),
+        ];
+
+        if (precios.some(precio => precio < 0)) {
+            Alert.alert(
+                'Error',
+                'Los precios no pueden ser negativos'
+            );
+            return;
+        }
+
+        const totalSectores =
+            Number(capacidadA || 0) +
+            Number(capacidadB || 0) +
+            Number(capacidadC || 0) +
+            Number(capacidadD || 0);
+
+        if (totalSectores === 0) {
+            Alert.alert(
+                'Error',
+                'Debe ingresar capacidad en al menos un sector'
+            );
+            return;
+        }
+
+        if (totalSectores > capacidadTotal) {
+            Alert.alert(
+                'Error',
+                'La suma de las capacidades de los sectores supera la capacidad total del estadio.'
+            );
+            return;
+        }
+
+        const estadioActual = estadios.find(
+            e => e.id === Number(id)
+        );
+
+        if (!estadioActual) {
+            Alert.alert(
+                'Error',
+                'No se encontró el estadio'
+            );
+            return;
+        }
 
         editarEstadio({
             id: Number(id),
             nombre,
             pais,
             ciudad,
-            capacidad: Number(capacidad),
-
+            capacidad: capacidadTotal,
             sectores: {
                 A: {
                     capacidad: Number(capacidadA || 0),
@@ -77,7 +166,6 @@ export default function EditarEstadio() {
     return (
         <View style={{ flex: 1 }}>
 
-            {/* BOTÓN VOLVER */}
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => router.back()}
@@ -93,7 +181,6 @@ export default function EditarEstadio() {
                 <Text style={styles.title}>Editar Estadio</Text>
 
                 <View style={styles.formContainer}>
-                    {/* NOMBRE */}
                     <Text style={styles.label}>Nombre del estadio</Text>
                     <TextInput
                         value={nombre}
@@ -103,7 +190,6 @@ export default function EditarEstadio() {
                         style={styles.input}
                     />
 
-                    {/* PAÍS (SELECTOR) */}
                     <Text style={styles.label}>País</Text>
                     <TouchableOpacity
                         style={styles.selector}
@@ -114,7 +200,6 @@ export default function EditarEstadio() {
                         </Text>
                     </TouchableOpacity>
 
-                    {/* CIUDAD */}
                     <Text style={styles.label}>Ciudad</Text>
                     <TextInput
                         value={ciudad}
@@ -124,7 +209,6 @@ export default function EditarEstadio() {
                         style={styles.input}
                     />
 
-                    {/* CAPACIDAD */}
                     <Text style={styles.label}>Capacidad total</Text>
                     <TextInput
                         value={capacidad}
@@ -207,7 +291,6 @@ export default function EditarEstadio() {
                         onChangeText={setPrecioD}
                     />
 
-                    {/* BOTÓN GUARDAR */}
                     <TouchableOpacity
                         style={styles.saveButton}
                         onPress={guardarEstadio}
@@ -218,7 +301,6 @@ export default function EditarEstadio() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-            {/* MODAL PAÍS */}
             <Modal
                 visible={modalPaisVisible}
                 transparent

@@ -19,7 +19,6 @@ export default function TabLayout() {
             }}
         >
 
-            {/* HOME */}
             <Tabs.Screen
                 name="home"
                 options={{
@@ -30,7 +29,6 @@ export default function TabLayout() {
                 }}
             />
 
-            {/* ESCANEAR ENTRADA (archivo: escanearEntrada.tsx) */}
             <Tabs.Screen
                 name="escanearEntrada"
                 options={{
@@ -45,7 +43,6 @@ export default function TabLayout() {
                 }}
             />
 
-            {/* HISTORIAL */}
             <Tabs.Screen
                 name="historial"
                 options={{
@@ -60,7 +57,6 @@ export default function TabLayout() {
                 }}
             />
 
-            {/* PERFIL */}
             <Tabs.Screen
                 name="perfil"
                 options={{

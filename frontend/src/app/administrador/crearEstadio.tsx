@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+    Alert,
     Modal,
     ScrollView,
     StyleSheet,
@@ -40,7 +41,63 @@ export default function CrearEstadio() {
             return;
         }
 
+        if (!nombre.trim()) {
+            Alert.alert('Error', 'Ingrese el nombre del estadio');
+            return;
+        }
+
+        if (!pais) {
+            Alert.alert('Error', 'Seleccione un país');
+            return;
+        }
+
+        if (!ciudad.trim()) {
+            Alert.alert('Error', 'Ingrese la ciudad');
+            return;
+        }
+
+        if (!capacidad.trim()) {
+            Alert.alert('Error', 'Ingrese la capacidad total');
+            return;
+        }
+
         const capacidadTotal = Number(capacidad);
+
+        if (isNaN(capacidadTotal) || capacidadTotal <= 0) {
+            Alert.alert(
+                'Error',
+                'La capacidad total debe ser un número mayor a 0'
+            );
+            return;
+        }
+        const precios = [
+            Number(precioA || 0),
+            Number(precioB || 0),
+            Number(precioC || 0),
+            Number(precioD || 0),
+        ];
+
+        if (precios.some(precio => precio < 0)) {
+            Alert.alert(
+                'Error',
+                'Los precios no pueden ser negativos'
+            );
+            return;
+        }
+        const capacidades = [
+            Number(capacidadA || 0),
+            Number(capacidadB || 0),
+            Number(capacidadC || 0),
+            Number(capacidadD || 0),
+        ];
+
+        if (capacidades.some(cap => cap < 0)) {
+            Alert.alert(
+                'Error',
+                'Las capacidades de los sectores no pueden ser negativas'
+            );
+            return;
+        }
 
         const totalSectores =
             Number(capacidadA || 0) +
@@ -51,6 +108,13 @@ export default function CrearEstadio() {
         if (totalSectores > capacidadTotal) {
             alert(
                 'La suma de las capacidades de los sectores supera la capacidad total del estadio.'
+            );
+            return;
+        }
+        if (totalSectores === 0) {
+            Alert.alert(
+                'Error',
+                'Debe ingresar capacidad en al menos un sector'
             );
             return;
         }
@@ -88,7 +152,6 @@ export default function CrearEstadio() {
     return (
         <View style={{ flex: 1 }}>
 
-            {/* BOTÓN VOLVER */}
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => router.back()}
@@ -105,7 +168,6 @@ export default function CrearEstadio() {
                 <Text style={styles.title}>Crear Estadio</Text>
 
                 <View style={styles.formContainer}>
-                    {/* NOMBRE */}
                     <Text style={styles.label}>Nombre del estadio</Text>
                     <TextInput
                         value={nombre}
@@ -115,7 +177,6 @@ export default function CrearEstadio() {
                         style={styles.input}
                     />
 
-                    {/* PAÍS (SELECTOR) */}
                     <Text style={styles.label}>País</Text>
                     <TouchableOpacity
                         style={styles.selector}
@@ -126,7 +187,6 @@ export default function CrearEstadio() {
                         </Text>
                     </TouchableOpacity>
 
-                    {/* CIUDAD */}
                     <Text style={styles.label}>Ciudad</Text>
                     <TextInput
                         value={ciudad}
@@ -136,7 +196,6 @@ export default function CrearEstadio() {
                         style={styles.input}
                     />
 
-                    {/* CAPACIDAD */}
                     <Text style={styles.label}>Capacidad total</Text>
                     <TextInput
                         value={capacidad}
@@ -219,7 +278,6 @@ export default function CrearEstadio() {
                         onChangeText={setPrecioD}
                     />
 
-                    {/* BOTÓN GUARDAR */}
                     <TouchableOpacity
                         style={styles.saveButton}
                         onPress={guardarEstadio}
@@ -230,7 +288,6 @@ export default function CrearEstadio() {
                     </TouchableOpacity>
                 </View>
 
-                {/* MODAL PAÍS */}
                 <Modal
                     visible={modalPaisVisible}
                     transparent

@@ -76,7 +76,6 @@ export default function Evento() {
     return (
         <View style={{ flex: 1 }}>
 
-            {/* BOTÓN VOLVER */}
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => router.back()}

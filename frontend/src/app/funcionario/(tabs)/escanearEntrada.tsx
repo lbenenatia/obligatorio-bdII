@@ -8,9 +8,21 @@ export default function EscanearEntrada() {
     const [scanned, setScanned] = useState(false);
     const router = useRouter();
 
-    if (!permission) {
-        return <View style={styles.container} />;
-    }
+    const validarQR = (data: string) => {
+        try {
+            const parsed = JSON.parse(data);
+
+            const timeWindow = Math.floor(Date.now() / 30000);
+
+            const expectedSignature = `SIG-${parsed.ticketId}-${timeWindow}`;
+
+            return parsed.signature === expectedSignature;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    if (!permission) return <View style={styles.container} />;
 
     if (!permission.granted) {
         requestPermission();
@@ -25,9 +37,7 @@ export default function EscanearEntrada() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.titulo}>
-                Escanear Entrada
-            </Text>
+            <Text style={styles.titulo}>Escanear Entrada</Text>
 
             <Text style={styles.subtitulo}>
                 Alineá el código QR dentro del recuadro para validar la entrada.
@@ -42,22 +52,58 @@ export default function EscanearEntrada() {
 
                         setScanned(true);
 
-                        let estado = 'valida';
-
-                        if (data === 'USADA') estado = 'usada';
-                        if (data === 'INVALIDA') estado = 'invalida';
+                        const esValido = validarQR(data);
 
                         router.push({
                             pathname: '../resultadoValidacion',
                             params: {
-                                estado,
+                                estado: esValido ? 'valida' : 'invalida',
                                 codigo: data,
                             },
                         });
                     }}
                 />
             </View>
+
             <TouchableOpacity
+                style={{
+                    backgroundColor: 'white',
+                    padding: 15,
+                    marginTop: 20,
+                    borderRadius: 10,
+                }}
+                onPress={() =>
+                    router.push({
+                        pathname: '../resultadoValidacion',
+                        params: {
+                            estado: 'valida',
+                            codigo: 'TEST-123',
+                        },
+                    })
+                }
+            >
+                <Text>SIMULAR QR (TEST)</Text>
+            </TouchableOpacity>
+             <TouchableOpacity
+                style={{
+                    backgroundColor: 'white',
+                    padding: 15,
+                    marginTop: 20,
+                    borderRadius: 10,
+                }}
+                onPress={() =>
+                    router.push({
+                        pathname: '../resultadoValidacion',
+                        params: {
+                            estado: 'invalida',
+                            codigo: 'TEST-123',
+                        },
+                    })
+                }
+            >
+                <Text>SIMULAR QR (TEST)</Text>
+            </TouchableOpacity>
+             <TouchableOpacity
                 style={{
                     backgroundColor: 'white',
                     padding: 15,

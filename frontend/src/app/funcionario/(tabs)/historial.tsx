@@ -19,7 +19,6 @@ export default function Historial() {
 
             <View style={styles.panel}>
 
-                {/* FILTRO */}
                 <TouchableOpacity
                     style={styles.filtro}
                     onPress={() => setMostrarPicker(true)}
@@ -29,7 +28,6 @@ export default function Historial() {
                     </Text>
                 </TouchableOpacity>
 
-                {/* PICKER */}
                 {mostrarPicker && (
                     <DateTimePicker
                         value={fecha}
@@ -45,10 +43,8 @@ export default function Historial() {
                     />
                 )}
 
-                {/* LISTA DE ENTRADAS */}
                 <View style={styles.lista}>
 
-                    {/* ITEM VÁLIDA */}
                     <View style={styles.item}>
                         <Text style={styles.itemTexto}>Entrada #12345</Text>
 
@@ -61,7 +57,6 @@ export default function Historial() {
 
                     <View style={styles.divisor} />
 
-                    {/* ITEM INVÁLIDA */}
                     <View style={styles.item}>
                         <Text style={styles.itemTexto}>Entrada #67890</Text>
 
@@ -74,7 +69,6 @@ export default function Historial() {
 
                     <View style={styles.divisor} />
 
-                    {/* ITEM USADA */}
                     <View style={styles.item}>
                         <Text style={styles.itemTexto}>Entrada #54321</Text>
 

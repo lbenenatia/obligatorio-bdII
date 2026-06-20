@@ -21,14 +21,12 @@ export default function Perfil() {
     return (
         <View style={styles.container}>
 
-            {/* HEADER */}
             <FontAwesome name="user-circle" size={90} color="#FFFFFF" />
 
             <Text style={styles.nombre}>
                 {usuario.nombre}
             </Text>
 
-            {/* CARD */}
             <View style={styles.centerContainer}>
                 <View style={styles.card}>
 
@@ -36,19 +34,16 @@ export default function Perfil() {
                         Perfil del funcionario
                     </Text>
 
-                    {/* EMAIL */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Correo electrónico</Text>
                         <Text style={styles.value}>{usuario.email}</Text>
                     </View>
 
-                    {/* ROL */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Rol</Text>
                         <Text style={styles.value}>{usuario.rol}</Text>
                     </View>
 
-                    {/* TELÉFONOS */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Teléfonos</Text>
                         {usuario.telefonos?.map((tel, i) => (
@@ -58,7 +53,6 @@ export default function Perfil() {
                         ))}
                     </View>
 
-                    {/* DOCUMENTO */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Documento</Text>
                         <Text style={styles.value}>
@@ -69,7 +63,6 @@ export default function Perfil() {
                         </Text>
                     </View>
 
-                    {/* DIRECCIÓN */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Dirección</Text>
                         <Text style={styles.value}>{usuario.pais}</Text>

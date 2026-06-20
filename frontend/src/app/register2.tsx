@@ -48,17 +48,14 @@ export default function RegisterScreen() {
         'Licencia de conducir',
     ];
 
-    // MODALS
     const [modalPaisDocVisible, setModalPaisDocVisible] = useState(false);
     const [modalTipoDocVisible, setModalTipoDocVisible] = useState(false);
     const [modalPaisDirVisible, setModalPaisDirVisible] = useState(false);
 
-    // DOCUMENTO
     const [paisDocumento, setPaisDocumento] = useState('');
     const [tipoDocumento, setTipoDocumento] = useState('');
     const [numeroDocumento, setNumeroDocumento] = useState('');
 
-    // DIRECCIÓN
     const [pais, setPais] = useState('');
     const [localidad, setLocalidad] = useState('');
     const [calle, setCalle] = useState('');
@@ -93,7 +90,45 @@ export default function RegisterScreen() {
                 Alert.alert('Campos incompletos', 'Debes completar todos los campos');
                 return;
             }
+            if (!/^\d+$/.test(numeroDocumento)) {
+                Alert.alert(
+                    'Documento inválido',
+                    'El número de documento solo puede contener números.'
+                );
+                return;
+            }
+            if (!/^\d+$/.test(numeroPuerta)) {
+                Alert.alert(
+                    'Número de puerta inválido',
+                    'Debe ingresar solo números.'
+                );
+                return;
+            }
+            if (!/^\d+$/.test(cp)) {
+                Alert.alert(
+                    'Código postal inválido',
+                    'El código postal debe contener solo números.'
+                );
+                return;
+            }
+            const telefonoInvalido = telefonos.some(
+                t => !/^\d{8,15}$/.test(t)
+            );
 
+            if (telefonoInvalido) {
+                Alert.alert(
+                    'Teléfono inválido',
+                    'Los teléfonos deben contener entre 8 y 15 dígitos.'
+                );
+                return;
+            }
+            if (!localidad.trim() || !calle.trim()) {
+                Alert.alert(
+                    'Datos inválidos',
+                    'La localidad y la calle no pueden estar vacías.'
+                );
+                return;
+            }
             await AuthService.register({
                 id: Date.now(),
                 nombre,
@@ -181,6 +216,7 @@ export default function RegisterScreen() {
                                 style={styles.input}
                                 placeholder="Número"
                                 value={numeroDocumento}
+                                keyboardType="numeric"
                                 onChangeText={setNumeroDocumento}
                             />
                         </View>
@@ -215,6 +251,7 @@ export default function RegisterScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder="Número"
+                                keyboardType="numeric"
                                 value={numeroPuerta}
                                 onChangeText={setNumeroPuerta}
                             />
@@ -224,6 +261,7 @@ export default function RegisterScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder="CP"
+                                keyboardType="numeric"
                                 value={cp}
                                 onChangeText={setCp}
                             />

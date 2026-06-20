@@ -28,25 +28,32 @@ export default function EntradaScreen() {
         asiento,
     } = useLocalSearchParams<EntradaParams>();
 
-    const [seconds, setSeconds] = useState(30);
-    const [qrValue, setQrValue] = useState(`ticket-${id}-${Date.now()}`);
+    const generarQR = (ticketId: string) => {
+        const timeWindow = Math.floor(Date.now() / 30000); 
 
-    const generarNuevoQR = () => {
-        setQrValue(`ticket-${id}-${Date.now()}`);
+        return JSON.stringify({
+            ticketId,
+            signature: `SIG-${ticketId}-${timeWindow}`,
+        });
     };
+
+    const [seconds, setSeconds] = useState(30);
+    const [qrValue, setQrValue] = useState(() => generarQR(id));
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setSeconds(prev => {
-                if (prev <= 1) {
-                    generarNuevoQR();
-                    return 30;
-                }
-                return prev - 1;
-            });
+            setQrValue(generarQR(id));
+            setSeconds(30);
+        }, 30000);
+
+        const countdown = setInterval(() => {
+            setSeconds(prev => (prev <= 1 ? 30 : prev - 1));
         }, 1000);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            clearInterval(countdown);
+        };
     }, [id]);
 
     return (
@@ -57,7 +64,7 @@ export default function EntradaScreen() {
             >
                 <Text style={styles.backText}>‹</Text>
             </TouchableOpacity>
-            {/* LOGO */}
+
             <Image
                 source={require('../../assets/images/logo_blanco.png')}
                 style={styles.logo}
@@ -108,13 +115,13 @@ export default function EntradaScreen() {
                         router.push({
                             pathname: '/transfer',
                             params: {
-                                id: id,
+                                id,
                                 match: `${equipoLocal} vs ${equipoVisitante}`,
                                 date: fecha,
-                                time: time,
-                                estadio: estadio,
-                                sector: sector,
-                                cantidad: asiento,
+                                time,
+                                estadio,
+                                sector: sector ?? '',
+                                cantidad: asiento ?? '',
                             },
                         })
                     }
