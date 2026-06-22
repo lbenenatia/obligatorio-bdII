@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     ScrollView,
     StyleSheet,
@@ -8,32 +8,20 @@ import {
     View
 } from 'react-native';
 
-import { useCompras } from '@/context/ComprasContext';
-import { getUsuarioLogueado } from '../../data/sesion';
+import { EntradaService } from '@/services/EntradaService';
+import { Entrada } from '@/types/entrada';
 
 export default function MisEntradas() {
     const [tab, setTab] = useState<'proximos' | 'historial'>('proximos');
-    const usuario = getUsuarioLogueado();
-    const { compras } = useCompras();
+    const [entradas, setEntradas] = useState<Entrada[]>([]);
     const router = useRouter();
 
-    // Convertimos compras → entradas (SIN cambiar estética)
-    const entradas = compras
-        .filter(c => c.usuarioId === usuario?.id)
-        .map(c => ({
-            id: c.id,
-            equipoLocal: c.match.split(' vs ')[0],
-            equipoVisitante: c.match.split(' vs ')[1],
-            fecha: c.date,
-            time: c.time,
-            estadio: c.estadio,
-            sector: c.sector,
-            asiento: `${c.sector}-${c.id.slice(-3)}`,
-            estado: 'ACTIVA',
-        }));
+    useEffect(() => {
+        EntradaService.misEntradas().then(setEntradas).catch(() => {});
+    }, []);
 
-    const entradasActivas = entradas.filter(e => e.estado === 'ACTIVA');
-    const entradasUsadas = entradas.filter(e => e.estado === 'USADA');
+    const entradasActivas = entradas.filter(e => e.estado !== 'CONSUMIDA');
+    const entradasUsadas = entradas.filter(e => e.estado === 'CONSUMIDA');
 
     return (
         <View style={styles.container}>
@@ -94,11 +82,11 @@ export default function MisEntradas() {
                                             id: e.id.toString(),
                                             equipoLocal: e.equipoLocal,
                                             equipoVisitante: e.equipoVisitante,
-                                            fecha: e.fecha,
-                                            time: e.time,
-                                            estadio: e.estadio,
-                                            sector: e.sector,
-                                            asiento: e.asiento,
+                                            fecha: e.fechaEvento,
+                                            time: e.horaEvento,
+                                            estadio: e.estadioNombre,
+                                            sector: e.sectorCodigo,
+                                            asiento: String(e.numeroAsiento),
                                         },
                                     })
                                 }
@@ -111,9 +99,9 @@ export default function MisEntradas() {
                                     {e.equipoLocal} vs {e.equipoVisitante}
                                 </Text>
 
-                                <Text style={styles.info}>📅 {e.fecha}</Text>
-                                <Text style={styles.info}>🕒 {e.time}</Text>
-                                <Text style={styles.info}>📍 {e.estadio}</Text>
+                                <Text style={styles.info}>📅 {e.fechaEvento}</Text>
+                                <Text style={styles.info}>🕒 {e.horaEvento}</Text>
+                                <Text style={styles.info}>📍 {e.estadioNombre}</Text>
 
                                 <View style={styles.bottomRow}>
                                     <View style={styles.status}>
@@ -137,9 +125,9 @@ export default function MisEntradas() {
                                     {e.equipoLocal} vs {e.equipoVisitante}
                                 </Text>
 
-                                <Text style={styles.info}>📅 {e.fecha}</Text>
-                                <Text style={styles.info}>🕒 {e.time}</Text>
-                                <Text style={styles.info}>📍 {e.estadio}</Text>
+                                <Text style={styles.info}>📅 {e.fechaEvento}</Text>
+                                <Text style={styles.info}>🕒 {e.horaEvento}</Text>
+                                <Text style={styles.info}>📍 {e.estadioNombre}</Text>
 
                                 <View style={styles.bottomRow}>
                                     <View style={[styles.status, styles.usedStatus]}>

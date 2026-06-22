@@ -1,5 +1,4 @@
 import {
-    Alert,
     Image,
     Modal,
     ScrollView,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 
 import { AuthService } from '@/services/AuthService';
+import { mostrarAlerta } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 
@@ -90,38 +90,35 @@ export default function RegisterScreen() {
                 !cp ||
                 telefonos.some(t => !t.trim())
             ) {
-                Alert.alert('Campos incompletos', 'Debes completar todos los campos');
+                mostrarAlerta('Campos incompletos', 'Debes completar todos los campos');
                 return;
             }
 
-            await AuthService.register({
-                id: Date.now(),
-                nombre,
+            const [nombreSolo, ...resto] = nombre.trim().split(' ');
+            const apellido = resto.join(' ') || nombreSolo;
+
+            await AuthService.registrarEspectador({
                 email,
-                password,
-                rol: 'USUARIO',
+                contrasena: password,
+                nombre: nombreSolo,
+                apellido,
 
                 paisDocumento,
-                tipoDocumento,
-                numeroDocumento,
+                documentoTipo: tipoDocumento,
+                nroDocumento: numeroDocumento,
 
-                pais,
                 localidad,
                 calle,
-                numeroPuerta,
-                cp,
+                paisDireccion: pais,
+                nroDireccion: Number(numeroPuerta) || 0,
+                codigoPostal: cp,
 
-                telefonos,
+                telefonos: telefonos.join(', '),
             });
 
-            Alert.alert('Éxito', 'Cuenta creada correctamente', [
-                {
-                    text: 'Aceptar',
-                    onPress: () => router.replace('/login'),
-                },
-            ]);
+            mostrarAlerta('Éxito', 'Cuenta creada correctamente', () => router.replace('/login'));
         } catch (error) {
-            Alert.alert(
+            mostrarAlerta(
                 'Error',
                 error instanceof Error ? error.message : 'Ocurrió un error'
             );

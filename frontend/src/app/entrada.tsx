@@ -1,6 +1,9 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '@/context/AuthContext';
+import { QRService } from '@/services/QRService';
+import { mostrarAlerta } from '@/utils/alert';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 type EntradaParams = {
@@ -16,6 +19,7 @@ type EntradaParams = {
 
 export default function EntradaScreen() {
     const router = useRouter();
+    const { usuario } = useAuth();
 
     const {
         id,
@@ -29,25 +33,57 @@ export default function EntradaScreen() {
     } = useLocalSearchParams<EntradaParams>();
 
     const [seconds, setSeconds] = useState(30);
-    const [qrValue, setQrValue] = useState(`ticket-${id}-${Date.now()}`);
+    const [qrValue, setQrValue] = useState<string | null>(null);
 
-    const generarNuevoQR = () => {
-        setQrValue(`ticket-${id}-${Date.now()}`);
+    // Evita refrescar el QR si la sesión se cerró o la app no está en primer plano
+    // (sino se sigue pegando al back en segundo plano o ya deslogueado, y tira 403).
+    const enPrimerPlanoRef = useRef(AppState.currentState === 'active');
+
+    const generarNuevoQR = async () => {
+        if (!id || !usuario || usuario.rol !== 'GENERAL' || !enPrimerPlanoRef.current) return;
+        try {
+            const entrada = await QRService.generar(Number(id));
+            setQrValue(entrada.codigoQR ?? `entrada-${id}`);
+        } catch (error) {
+            mostrarAlerta(
+                'Error',
+                error instanceof Error ? error.message : 'No se pudo generar el código QR'
+            );
+        }
     };
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setSeconds(prev => {
-                if (prev <= 1) {
-                    generarNuevoQR();
-                    return 30;
-                }
-                return prev - 1;
-            });
-        }, 1000);
+        const subscription = AppState.addEventListener('change', estado => {
+            enPrimerPlanoRef.current = estado === 'active';
+        });
 
-        return () => clearInterval(interval);
-    }, [id]);
+        return () => subscription.remove();
+    }, []);
+
+    // useFocusEffect (no useEffect) porque esta pantalla puede quedar montada en el stack
+    // de navegación al ir al login: el cleanup de un useEffect normal solo corre al
+    // desmontar, pero acá necesitamos pausar el polling en cuanto la pantalla pierde el foco
+    // (ej. al cerrar sesión y loguearse con otra cuenta), no solo cuando se destruye.
+    useFocusEffect(
+        useCallback(() => {
+            if (!usuario || usuario.rol !== 'GENERAL') return;
+
+            generarNuevoQR();
+
+            const interval = setInterval(() => {
+                setSeconds(prev => {
+                    if (prev <= 1) {
+                        generarNuevoQR();
+                        return 30;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            return () => clearInterval(interval);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [id, usuario])
+    );
 
     return (
         <View style={styles.container}>
@@ -85,7 +121,7 @@ export default function EntradaScreen() {
                     <View style={styles.divider} />
 
                     <View style={styles.qrContainer}>
-                        <QRCode value={qrValue} size={110} />
+                        {qrValue && <QRCode value={qrValue} size={110} />}
                     </View>
 
                     <View style={styles.timerContainer}>

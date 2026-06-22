@@ -1,19 +1,12 @@
-export type Compra = {
-    id: string;
-    usuarioId: number;
-
-    eventoId: number;
-
-    match: string;
-    date: string;
-    time: string;
-    estadio: string;
-
-    sector: 'A' | 'B';
-
-    cantidad: number;
-    precioUnitario: number;
-    total: number;
-
-    transferido: boolean;
-};
+export interface Compra {
+    id: number;
+    fechaCompra: string;
+    cantEntradas: number;
+    montoTotal: number;
+    costo: number;
+    comision: number;
+    estado: 'PENDIENTE' | 'CONFIRMADA' | 'PAGA';
+    // El back devuelve la entidad Entrada completa; del front solo usamos el id
+    // para luego pedir el detalle/QR de cada una por separado.
+    entradas: { id: number }[];
+}

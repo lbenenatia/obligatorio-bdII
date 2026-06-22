@@ -1,34 +1,15 @@
-import { useCompras } from '@/context/ComprasContext';
-import { useEventos } from '@/context/EventosContext';
+import { EventoService } from '@/services/EventoService';
+import { DisponibilidadSector } from '@/types/evento';
+import { mostrarAlerta } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+const MAX_ENTRADAS_POR_COMPRA = 5;
 
 
 export default function CompraScreen() {
-    const { eventos } = useEventos();
-    const { compras } = useCompras();
     const router = useRouter();
-    const entradasVendidas = (
-        sectorId: string
-    ) => {
-        return compras
-            .filter(
-                c =>
-                    c.eventoId === Number(id) &&
-                    c.sector === sectorId
-            )
-            .reduce(
-                (acc, c) => acc + c.cantidad,
-                0
-            );
-    };
-    const disponibles = (
-        capacidad: number,
-        sectorId: string
-    ) => {
-        return capacidad - entradasVendidas(sectorId);
-    };
 
     const {
         id,
@@ -37,36 +18,48 @@ export default function CompraScreen() {
         time,
         estadio,
     } = useLocalSearchParams();
-    const evento = eventos.find(
-        e => e.id === Number(id)
-    );
-    const sectoresDisponibles =
-        evento?.sectores
-            ? Object.entries(evento.sectores)
-            : [];
-    const [cantidad, setCantidad] = useState(1);
 
+    const [sectoresDisponibles, setSectoresDisponibles] = useState<DisponibilidadSector[]>([]);
+    const [cantidad, setCantidad] = useState(1);
     const [sectorSeleccionado, setSectorSeleccionado] =
         useState<'A' | 'B' | 'C' | 'D'>('A');
 
-    const sectorActual =
-        evento?.sectores?.[
-        sectorSeleccionado as keyof typeof evento.sectores
-        ];
+    useEffect(() => {
+        EventoService.disponibilidad(Number(id))
+            .then(sectores => {
+                setSectoresDisponibles(sectores);
+                if (sectores.length > 0) {
+                    setSectorSeleccionado(sectores[0].codigo);
+                }
+            })
+            .catch(() => {});
+    }, [id]);
+
+    const sectorActual = sectoresDisponibles.find(
+        s => s.codigo === sectorSeleccionado
+    );
 
     const total = useMemo(() => {
         return cantidad * (sectorActual?.precio ?? 0);
     }, [cantidad, sectorActual]);
 
-    const maxDisponibles =
-        sectorActual
-            ? disponibles(
-                sectorActual.capacidad,
-                sectorSeleccionado
-            )
-            : 0;
+    const maxDisponibles = Math.min(
+        sectorActual?.disponibles ?? 0,
+        MAX_ENTRADAS_POR_COMPRA
+    );
+
+    useEffect(() => {
+        setCantidad(prev => Math.min(prev, Math.max(maxDisponibles, 1)));
+    }, [maxDisponibles]);
 
     const aumentar = () => {
+        if (cantidad >= MAX_ENTRADAS_POR_COMPRA) {
+            mostrarAlerta(
+                'Límite alcanzado',
+                `No se pueden comprar más de ${MAX_ENTRADAS_POR_COMPRA} entradas por compra.`
+            );
+            return;
+        }
         if (cantidad < maxDisponibles) {
             setCantidad(prev => prev + 1);
         }
@@ -102,44 +95,34 @@ export default function CompraScreen() {
             </View>
 
             <View style={styles.optionsContainer}>
-                {sectoresDisponibles.map(([idSector, info]) => {
-                    const quedan =
-                        disponibles(
-                            info.capacidad,
-                            idSector
-                        );
-
-                    return (
-                        <TouchableOpacity
-                            key={idSector}
-                            style={[
-                                styles.optionCard,
-                                sectorSeleccionado === idSector
-                                    ? styles.optionCardSelected
-                                    : styles.optionCardInactive,
-                            ]}
-                            onPress={() =>
-                                setSectorSeleccionado(
-                                    idSector as any
-                                )
-                            }
-                        >
-                            <View style={styles.optionTextContainer}>
-                                <Text style={styles.optionTitle}>
-                                    Sector {idSector}
-                                </Text>
-
-                                <Text style={styles.optionSubtitle}>
-                                    USD {info.precio}
-                                </Text>
-                            </View>
-
-                            <Text style={styles.optionPrice}>
-                                Quedan {quedan}
+                {sectoresDisponibles.map((sector) => (
+                    <TouchableOpacity
+                        key={sector.codigo}
+                        style={[
+                            styles.optionCard,
+                            sectorSeleccionado === sector.codigo
+                                ? styles.optionCardSelected
+                                : styles.optionCardInactive,
+                        ]}
+                        onPress={() =>
+                            setSectorSeleccionado(sector.codigo)
+                        }
+                    >
+                        <View style={styles.optionTextContainer}>
+                            <Text style={styles.optionTitle}>
+                                Sector {sector.codigo}
                             </Text>
-                        </TouchableOpacity>
-                    );
-                })}
+
+                            <Text style={styles.optionSubtitle}>
+                                USD {sector.precio}
+                            </Text>
+                        </View>
+
+                        <Text style={styles.optionPrice}>
+                            Quedan {sector.disponibles}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
 
             <View style={styles.counterContainer}>
@@ -153,7 +136,10 @@ export default function CompraScreen() {
                 <Text style={styles.counterValue}>{cantidad}</Text>
 
                 <TouchableOpacity
-                    style={styles.counterButton}
+                    style={[
+                        styles.counterButton,
+                        cantidad >= maxDisponibles && styles.counterButtonDisabled,
+                    ]}
                     onPress={aumentar}
                 >
                     <Text style={styles.counterButtonText}>+</Text>
@@ -339,6 +325,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: 'rgba(0, 0, 0, 0.3)',
+    },
+
+    counterButtonDisabled: {
+        opacity: 0.4,
     },
 
     counterButtonText: {

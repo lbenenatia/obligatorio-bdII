@@ -1,15 +1,8 @@
-import { entradasMock } from '@/data/entradas';
+import { api } from '@/services/api';
+import { Entrada } from '@/types/entrada';
 
 export const EntradaService = {
-    obtenerPorUsuario: async (usuarioId: number) => {
-        return entradasMock.filter(
-            (e) => e.usuarioId === usuarioId
-        );
-    },
-
-    obtenerPorId: async (id: number) => {
-        return entradasMock.find(
-            (e) => e.id === id
-        );
-    },
+    misEntradas: async () => api.get<Entrada[]>('/entradas/mias'),
+    obtener: async (id: number) => api.get<Entrada>(`/entradas/${id}`),
+    misValidadas: async () => api.get<Entrada[]>('/entradas/validadas/mias'),
 };

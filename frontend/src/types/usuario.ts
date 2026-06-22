@@ -1,24 +1,31 @@
-export type Rol =
-    | 'ADMIN'
-    | 'FUNCIONARIO'
-    | 'USUARIO';
+export type Rol = 'ADMINISTRADOR' | 'FUNCIONARIO' | 'GENERAL';
+
+export interface Direccion {
+    calle: string;
+    nroDireccion: number;
+    localidad: string;
+    paisDireccion: string;
+    codigoPostal: string;
+}
 
 export interface Usuario {
     id: number;
-    nombre: string;
     email: string;
-    password: string;
+    nombre: string;
+    apellido: string;
     rol: Rol;
 
     paisDocumento: string;
-    tipoDocumento: string;
-    numeroDocumento: string;
+    nroDocumento: string;
+    documentoTipo: string;
 
-    pais: string;
-    localidad: string;
-    calle: string;
-    numeroPuerta: string;
-    cp: string;
+    telefonos: string;
+    direccion: Direccion | null;
+}
 
-    telefonos: string[];
+export interface UsuarioResumen {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
 }

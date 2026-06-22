@@ -7,9 +7,9 @@ import {
     View,
 } from 'react-native';
 
+import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 export default function RegisterScreen() {
     const [nombre, setNombre] = useState('');
@@ -25,15 +25,15 @@ export default function RegisterScreen() {
             !password.trim() ||
             !confirmPassword.trim()
         ) {
-            Alert.alert(
+            mostrarAlerta(
                 'Campos incompletos',
                 'Debes completar todos los campos'
             );
             return;
         }
-        
+
         if (!emailValido.test(email)) {
-            Alert.alert(
+            mostrarAlerta(
                 'Correo inválido',
                 'Ingresá un correo electrónico válido'
             );
@@ -41,7 +41,7 @@ export default function RegisterScreen() {
         }
 
         if (password.length < 8) {
-            Alert.alert(
+            mostrarAlerta(
                 'Contraseña inválida',
                 'La contraseña debe tener al menos 8 caracteres'
             );
@@ -49,7 +49,7 @@ export default function RegisterScreen() {
         }
 
         if (password !== confirmPassword) {
-            Alert.alert(
+            mostrarAlerta(
                 'Error',
                 'Las contraseñas no coinciden'
             );

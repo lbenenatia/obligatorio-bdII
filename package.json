@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "expo-asset": "^56.0.17",
-    "react-native-qrcode-svg": "^6.3.21"
-  }
-}

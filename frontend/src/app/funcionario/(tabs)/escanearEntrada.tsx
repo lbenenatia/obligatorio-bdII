@@ -1,5 +1,6 @@
+import { QRService } from '@/services/QRService';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRouter } from 'expo-router';
+import { useIsFocused, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -7,6 +8,9 @@ export default function EscanearEntrada() {
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const router = useRouter();
+    // La camara solo debe estar prendida mientras esta pantalla esta activamente en foco:
+    // si el funcionario cambia de tab, se apaga (se desmonta), y se reprende solo al volver.
+    const enFoco = useIsFocused();
 
     if (!permission) {
         return <View style={styles.container} />;
@@ -23,6 +27,39 @@ export default function EscanearEntrada() {
         );
     }
 
+    const procesarCodigo = async (codigo: string) => {
+        if (scanned) return;
+        setScanned(true);
+
+        try {
+            const { resultado, entrada } = await QRService.validar(codigo);
+            const estado =
+                resultado === 'VALIDA' ? 'valida' :
+                    resultado === 'USADA' ? 'usada' : 'invalida';
+
+            router.push({
+                pathname: '../resultadoValidacion',
+                params: {
+                    estado,
+                    codigo,
+                    equipoLocal: entrada?.equipoLocal,
+                    equipoVisitante: entrada?.equipoVisitante,
+                    fechaEvento: entrada?.fechaEvento,
+                    estadioNombre: entrada?.estadioNombre,
+                    sectorCodigo: entrada?.sectorCodigo,
+                    numeroAsiento: entrada ? String(entrada.numeroAsiento) : undefined,
+                },
+            });
+        } catch {
+            router.push({
+                pathname: '../resultadoValidacion',
+                params: { estado: 'invalida', codigo },
+            });
+        } finally {
+            setScanned(false);
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.titulo}>
@@ -34,48 +71,15 @@ export default function EscanearEntrada() {
             </Text>
 
             <View style={styles.cameraContainer}>
-                <CameraView
-                    style={styles.camera}
-                    facing="back"
-                    onBarcodeScanned={({ data }) => {
-                        if (scanned) return;
-
-                        setScanned(true);
-
-                        let estado = 'valida';
-
-                        if (data === 'USADA') estado = 'usada';
-                        if (data === 'INVALIDA') estado = 'invalida';
-
-                        router.push({
-                            pathname: '../resultadoValidacion',
-                            params: {
-                                estado,
-                                codigo: data,
-                            },
-                        });
-                    }}
-                />
+                {enFoco && (
+                    <CameraView
+                        style={styles.camera}
+                        facing="back"
+                        active={enFoco}
+                        onBarcodeScanned={({ data }) => procesarCodigo(data)}
+                    />
+                )}
             </View>
-            <TouchableOpacity
-                style={{
-                    backgroundColor: 'white',
-                    padding: 15,
-                    marginTop: 20,
-                    borderRadius: 10,
-                }}
-                onPress={() =>
-                    router.push({
-                        pathname: '../resultadoValidacion',
-                        params: {
-                            estado: 'usada',
-                            codigo: 'TEST-123',
-                        },
-                    })
-                }
-            >
-                <Text>SIMULAR QR (TEST)</Text>
-            </TouchableOpacity>
         </View>
     );
 }

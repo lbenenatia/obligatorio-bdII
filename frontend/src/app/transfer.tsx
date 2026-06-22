@@ -1,5 +1,7 @@
-import { useCompras } from '@/context/ComprasContext';
-import { usuariosMock } from '@/data/usuarios';
+import { QRService } from '@/services/QRService';
+import { TransferenciaService } from '@/services/TransferenciaService';
+import { UsuarioService } from '@/services/UsuarioService';
+import { UsuarioResumen } from '@/types/usuario';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -10,11 +12,12 @@ import QRCode from 'react-native-qrcode-svg';
 
 export default function Transfer() {
     const [seconds, setSeconds] = useState(30);
-    const [qrValue, setQrValue] = useState(`ticket-${Date.now()}`);
+    const [qrValue, setQrValue] = useState<string | null>(null);
     const [query, setQuery] = useState('');
-    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [resultados, setResultados] = useState<UsuarioResumen[]>([]);
+    const [selectedUser, setSelectedUser] = useState<UsuarioResumen | null>(null);
     const [showDropdown, setShowDropdown] = useState(false);
-    const { transferirCompra } = useCompras();
+    const [enviando, setEnviando] = useState(false);
     const {
         id,
         match,
@@ -25,16 +28,31 @@ export default function Transfer() {
         cantidad,
     } = useLocalSearchParams();
 
-    const generarNuevoQR = () => {
-        setQrValue(`ticket-${Date.now()}`);
+    const generarNuevoQR = async () => {
+        if (!id) return;
+        const entrada = await QRService.generar(Number(id));
+        setQrValue(entrada.codigoQR ?? `entrada-${id}`);
     };
 
-    const resultados = usuariosMock.filter(
-        u =>
-            u.email.toLowerCase().includes(query.toLowerCase()) &&
-            u.id !== 1
-    );
     useEffect(() => {
+        if (query.length === 0) {
+            setResultados([]);
+            return;
+        }
+
+        let activo = true;
+        UsuarioService.buscarPorEmail(query).then(usuarios => {
+            if (activo) setResultados(usuarios);
+        });
+
+        return () => {
+            activo = false;
+        };
+    }, [query]);
+
+    useEffect(() => {
+        generarNuevoQR();
+
         const interval = setInterval(() => {
             setSeconds((prev) => {
                 if (prev <= 1) {
@@ -47,17 +65,18 @@ export default function Transfer() {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [id]);
     const router = useRouter();
-    const confirmarTransferencia = () => {
-        if (!selectedUser) return;
+    const confirmarTransferencia = async () => {
+        if (!selectedUser || !id) return;
 
-        transferirCompra(
-            String(id),
-            selectedUser.id
-        );
-
-        router.push('/transferenciaAprobada');
+        setEnviando(true);
+        try {
+            await TransferenciaService.crear(selectedUser.email, [Number(id)]);
+            router.push('/transferenciaAprobada');
+        } finally {
+            setEnviando(false);
+        }
     };
     return (
         <View style={styles.container}>
@@ -92,10 +111,12 @@ export default function Transfer() {
                     <View style={styles.divider} />
 
                     <View style={styles.qrContainer}>
-                        <QRCode
-                            value={qrValue}
-                            size={99}
-                        />
+                        {qrValue && (
+                            <QRCode
+                                value={qrValue}
+                                size={99}
+                            />
+                        )}
                     </View>
 
                     <View style={styles.timerContainer}>
@@ -125,7 +146,7 @@ export default function Transfer() {
                         </Text>
 
                         <Text style={styles.subtitle2}>
-                            México vs Sudáfrica, Sector A, Asiento 15
+                            {match}{sector ? `, Sector ${sector}` : ''}
                         </Text>
 
                         <Text style={styles.description}>
@@ -166,7 +187,7 @@ export default function Transfer() {
                                         }}
                                     >
                                         <Text style={styles.dropdownText}>
-                                            {user.nombre} ({user.email})
+                                            {user.nombre} {user.apellido} ({user.email})
                                         </Text>
                                     </TouchableOpacity>
                                 ))
@@ -180,7 +201,7 @@ export default function Transfer() {
                             </Text>
 
                             <Text style={styles.selectedName}>
-                                {selectedUser.nombre}
+                                {selectedUser.nombre} {selectedUser.apellido}
                             </Text>
 
                             <TouchableOpacity
@@ -199,9 +220,10 @@ export default function Transfer() {
                         <TouchableOpacity
                             style={styles.primaryButton}
                             onPress={confirmarTransferencia}
+                            disabled={!selectedUser || enviando}
                         >
                             <Text style={styles.primaryButtonText}>
-                                Confirmar transferencia
+                                {enviando ? 'Transfiriendo...' : 'Confirmar transferencia'}
                             </Text>
                         </TouchableOpacity>
 

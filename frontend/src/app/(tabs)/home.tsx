@@ -1,23 +1,29 @@
-import { getUsuarioLogueado } from '@/data/sesion';
+import { useAuth } from '@/context/AuthContext';
 import { EventoService } from '@/services/EventoService';
 import { Evento } from '@/types/evento';
+import { hoyLocalISO } from '@/utils/fecha';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-    const usuario = getUsuarioLogueado();
+    const { usuario } = useAuth();
     const [proximoEvento, setProximoEvento] =
         useState<Evento | null>(null);
+
     useEffect(() => {
         const cargarEvento = async () => {
-            const evento =
-                await EventoService.obtenerProximoEvento();
+            const eventos = await EventoService.listar();
+            const hoy = hoyLocalISO();
 
-            setProximoEvento(evento);
+            const proximos = eventos
+                .filter(e => e.fechaEvento >= hoy)
+                .sort((a, b) => a.fechaEvento.localeCompare(b.fechaEvento));
+
+            setProximoEvento(proximos[0] ?? null);
         };
 
-        cargarEvento();
+        cargarEvento().catch(() => {});
     }, []);
     return (
         <SafeAreaView style={styles.container}>
@@ -39,15 +45,17 @@ export default function HomeScreen() {
                 <View style={styles.infoCard}>
                     <Text style={styles.text1}>PROXIMO EVENTO</Text>
                     <Text style={styles.text2}>
-                        {proximoEvento?.match}
+                        {proximoEvento
+                            ? `${proximoEvento.equipoLocal.nombreEquipo} vs ${proximoEvento.equipoVisitante.nombreEquipo}`
+                            : 'Sin eventos próximos'}
                     </Text>
 
                     <Text style={styles.text3}>
-                        {proximoEvento?.date} - {proximoEvento?.time}
+                        {proximoEvento?.fechaEvento} - {proximoEvento?.horaEvento}
                     </Text>
 
                     <Text style={styles.text4}>
-                        {proximoEvento?.estadio}
+                        {proximoEvento?.estadio.nombreEstadio}
                     </Text>
                 </View>
             </View>
@@ -66,7 +74,7 @@ const styles = StyleSheet.create({
     header: {
         paddingTop: 20,
         paddingHorizontal: 20,
-        height: 100, 
+        height: 100,
         justifyContent: 'center',
     },
 
@@ -86,7 +94,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 35,
         fontWeight: 'bold',
-        marginBottom: 8, 
+        marginBottom: 8,
     },
 
     headerSubtitle: {

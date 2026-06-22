@@ -1,7 +1,9 @@
-import { useEstadios } from '@/context/EstadiosContext';
-import { useEventos } from '@/context/EventosContext';
+import { EstadioService } from '@/services/EstadioService';
+import { EventoService } from '@/services/EventoService';
+import { Estadio } from '@/types/estadio';
+import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ScrollView,
     StyleSheet,
@@ -11,52 +13,100 @@ import {
     View
 } from 'react-native';
 
+type ValoresSector = { capMax: string; precio: string };
+
 export default function NuevoEvento() {
-    const { agregarEvento } = useEventos();
     const router = useRouter();
-    const [paisLocal, setPaisLocal] = useState('');
-    const [paisVisitante, setPaisVisitante] = useState('');
-    const [fecha, setFecha] = useState('');
-    const [hora, setHora] = useState('');
-    const [estadio, setEstadio] = useState('');
-    const [sectorA, setSectorA] = useState(false);
-    const [sectorB, setSectorB] = useState(false);
-    const [sectorC, setSectorC] = useState(false);
-    const [sectorD, setSectorD] = useState(false);
-    const { estadios } = useEstadios();
-    const [mostrarEstadios, setMostrarEstadios] =
-        useState(false);
+    const [equipoLocalNombre, setEquipoLocalNombre] = useState('');
+    const [equipoVisitanteNombre, setEquipoVisitanteNombre] = useState('');
+    const [fechaEvento, setFechaEvento] = useState('');
+    const [horaEvento, setHoraEvento] = useState('');
+    const [estadios, setEstadios] = useState<Estadio[]>([]);
+    const [estadioId, setEstadioId] = useState<number | null>(null);
+    const [mostrarEstadios, setMostrarEstadios] = useState(false);
+    const [guardando, setGuardando] = useState(false);
+
+    const [valoresSectores, setValoresSectores] = useState<Record<string, ValoresSector>>({});
+
+    useEffect(() => {
+        EstadioService.listar().then(setEstadios).catch(() => {});
+    }, []);
+
     const estadioSeleccionado = estadios.find(
-        e => e.nombre === estadio
+        e => e.id === estadioId
     );
-    const guardarEvento = () => {
+
+    const seleccionarEstadio = (estadio: Estadio) => {
+        setEstadioId(estadio.id);
+        setMostrarEstadios(false);
+
+        const valores: Record<string, ValoresSector> = {};
+        for (const sector of estadio.sectores) {
+            valores[sector.codigo] = {
+                capMax: String(sector.capMax),
+                precio: String(sector.precio),
+            };
+        }
+        setValoresSectores(valores);
+    };
+
+    // La capacidad de un sector para el evento no puede superar la capacidad máxima
+    // que tiene ese sector en el estadio (no tiene sentido vender más entradas de las que entran).
+    const cambiarCapMax = (codigo: string, texto: string) => {
+        const capMaxEstadio = estadioSeleccionado?.sectores.find(s => s.codigo === codigo)?.capMax ?? 0;
+        const numero = Number(texto || 0);
+        const valorFinal = texto !== '' && numero > capMaxEstadio
+            ? String(capMaxEstadio)
+            : texto;
+
+        setValoresSectores(prev => ({
+            ...prev,
+            [codigo]: { ...prev[codigo], capMax: valorFinal },
+        }));
+    };
+
+    const cambiarPrecio = (codigo: string, texto: string) => {
+        setValoresSectores(prev => ({
+            ...prev,
+            [codigo]: { ...prev[codigo], precio: texto },
+        }));
+    };
+
+    const guardarEvento = async () => {
         if (
-            !paisLocal ||
-            !paisVisitante ||
-            !fecha ||
-            !hora ||
-            !estadio
+            !equipoLocalNombre ||
+            !equipoVisitanteNombre ||
+            !fechaEvento ||
+            !horaEvento ||
+            !estadioId
         ) {
             return;
         }
 
-        agregarEvento({
-            id: Date.now(),
-            paisLocal,
-            paisVisitante,
-            fecha,
-            hora,
-            estadio,
-            capacidad: estadioSeleccionado?.capacidad ?? 0,
-            sectores: {
-                ...(sectorA && { A: estadioSeleccionado!.sectores.A }),
-                ...(sectorB && { B: estadioSeleccionado!.sectores.B }),
-                ...(sectorC && { C: estadioSeleccionado!.sectores.C }),
-                ...(sectorD && { D: estadioSeleccionado!.sectores.D }),
-            },
-        });
+        setGuardando(true);
+        try {
+            await EventoService.crear({
+                estadioId,
+                equipoLocalNombre,
+                equipoVisitanteNombre,
+                fechaEvento,
+                horaEvento,
+                sectores: Object.entries(valoresSectores).map(([codigo, v]) => ({
+                    codigo: codigo as 'A' | 'B' | 'C' | 'D',
+                    capMax: Number(v.capMax || 0),
+                    precio: Number(v.precio || 0),
+                })),
+            });
 
-        router.push('/administrador/eventos');
+            router.push('/administrador/eventos');
+        } catch (error) {
+            mostrarAlerta(
+                'Error',
+                error instanceof Error ? error.message : 'No se pudo crear el evento'
+            );
+        } finally {
+            setGuardando(false);
+        }
     };
 
     return (
@@ -73,36 +123,36 @@ export default function NuevoEvento() {
                 <Text style={styles.title}>Nuevo Evento</Text>
 
                 <View style={styles.formulario}>
-                    <Text style={styles.label}>País local</Text>
+                    <Text style={styles.label}>Equipo local</Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Ej: Uruguay"
-                        value={paisLocal}
-                        onChangeText={setPaisLocal}
+                        value={equipoLocalNombre}
+                        onChangeText={setEquipoLocalNombre}
                     />
 
-                    <Text style={styles.label}>País visitante</Text>
+                    <Text style={styles.label}>Equipo visitante</Text>
                     <TextInput
                         style={styles.input}
                         placeholder="Ej: Argentina"
-                        value={paisVisitante}
-                        onChangeText={setPaisVisitante}
+                        value={equipoVisitanteNombre}
+                        onChangeText={setEquipoVisitanteNombre}
                     />
 
                     <Text style={styles.label}>Fecha</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="15/06/2026"
-                        value={fecha}
-                        onChangeText={setFecha}
+                        placeholder="2026-06-15"
+                        value={fechaEvento}
+                        onChangeText={setFechaEvento}
                     />
 
                     <Text style={styles.label}>Hora</Text>
                     <TextInput
                         style={styles.input}
                         placeholder="20:00"
-                        value={hora}
-                        onChangeText={setHora}
+                        value={horaEvento}
+                        onChangeText={setHoraEvento}
                     />
 
 
@@ -116,12 +166,12 @@ export default function NuevoEvento() {
                     >
                         <Text
                             style={
-                                estadio
+                                estadioSeleccionado
                                     ? styles.selectorText
                                     : styles.placeholderText
                             }
                         >
-                            {estadio || 'Seleccione un estadio'}
+                            {estadioSeleccionado?.nombreEstadio || 'Seleccione un estadio'}
                         </Text>
                     </TouchableOpacity>
 
@@ -130,101 +180,57 @@ export default function NuevoEvento() {
                             <TouchableOpacity
                                 key={item.id}
                                 style={styles.opcionEstadio}
-                                onPress={() => {
-                                    setEstadio(item.nombre);
-                                    setMostrarEstadios(false);
-                                }}
+                                onPress={() => seleccionarEstadio(item)}
                             >
                                 <Text style={styles.opcionEstadioTexto}>
-                                    {item.nombre}
+                                    {item.nombreEstadio}
                                 </Text>
                             </TouchableOpacity>
                         ))}
 
                     {estadioSeleccionado && (
-                        <View style={styles.capacidadBox}>
-                            <Text style={styles.capacidadTexto}>
-                                Capacidad máxima: {estadioSeleccionado.capacidad}
+                        <>
+                            <View style={styles.capacidadBox}>
+                                <Text style={styles.capacidadTexto}>
+                                    Ubicación: {estadioSeleccionado.ubicacion}
+                                </Text>
+                            </View>
+
+                            <Text style={styles.label}>
+                                Capacidad y precio por sector (para este evento)
                             </Text>
 
-                            <Text style={styles.capacidadTexto}>
-                                Ciudad: {estadioSeleccionado.ciudad}
-                            </Text>
-                        </View>
+                            {estadioSeleccionado.sectores.map(sector => (
+                                <React.Fragment key={sector.codigo}>
+                                    <Text style={styles.label}>
+                                        Sector {sector.codigo} (máx. {sector.capMax})
+                                    </Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={`Capacidad Sector ${sector.codigo}`}
+                                        keyboardType="numeric"
+                                        value={valoresSectores[sector.codigo]?.capMax ?? ''}
+                                        onChangeText={texto => cambiarCapMax(sector.codigo, texto)}
+                                    />
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder={`Precio Sector ${sector.codigo}`}
+                                        keyboardType="numeric"
+                                        value={valoresSectores[sector.codigo]?.precio ?? ''}
+                                        onChangeText={texto => cambiarPrecio(sector.codigo, texto)}
+                                    />
+                                </React.Fragment>
+                            ))}
+                        </>
                     )}
-
-                    <Text style={styles.label}>Sectores habilitados</Text>
-
-                    <View style={styles.checkboxContainer}>
-                        <Text style={styles.checkboxText}>Sector A</Text>
-
-                        <TouchableOpacity
-                            onPress={() => setSectorA(!sectorA)}
-                            style={[
-                                styles.checkbox,
-                                sectorA && styles.checkboxSeleccionado,
-                            ]}
-                        >
-                            <Text style={styles.checkboxIcon}>
-                                {sectorA ? '✓' : ''}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.checkboxContainer}>
-                        <Text style={styles.checkboxText}>Sector B</Text>
-
-                        <TouchableOpacity
-                            onPress={() => setSectorB(!sectorB)}
-                            style={[
-                                styles.checkbox,
-                                sectorB && styles.checkboxSeleccionado,
-                            ]}
-                        >
-                            <Text style={styles.checkboxIcon}>
-                                {sectorB ? '✓' : ''}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.checkboxContainer}>
-                        <Text style={styles.checkboxText}>Sector C</Text>
-
-                        <TouchableOpacity
-                            onPress={() => setSectorC(!sectorC)}
-                            style={[
-                                styles.checkbox,
-                                sectorC && styles.checkboxSeleccionado,
-                            ]}
-                        >
-                            <Text style={styles.checkboxIcon}>
-                                {sectorC ? '✓' : ''}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.checkboxContainer}>
-                        <Text style={styles.checkboxText}>Sector D</Text>
-
-                        <TouchableOpacity
-                            onPress={() => setSectorD(!sectorD)}
-                            style={[
-                                styles.checkbox,
-                                sectorD && styles.checkboxSeleccionado,
-                            ]}
-                        >
-                            <Text style={styles.checkboxIcon}>
-                                {sectorD ? '✓' : ''}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
 
                     <TouchableOpacity
                         style={styles.boton}
                         onPress={guardarEvento}
+                        disabled={guardando}
                     >
                         <Text style={styles.textoBoton}>
-                            Crear Evento
+                            {guardando ? 'Creando...' : 'Crear Evento'}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -304,40 +310,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    checkboxContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 10,
-    },
-
-    checkboxText: {
-        fontSize: 16,
-        color: '#051F3B',
-    },
-
-    checkbox: {
-        width: 24,
-        height: 24,
-        borderWidth: 2,
-        borderColor: '#9D9D9D',
-        borderRadius: 4,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-    },
-
-    checkboxSeleccionado: {
-        backgroundColor: '#0F6ED4',
-        borderColor: '#0F6ED4',
-    },
-
-    checkboxIcon: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-
 
     selector: {
         borderWidth: 1,

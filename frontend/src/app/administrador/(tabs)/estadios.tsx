@@ -1,50 +1,59 @@
-import { useEstadios } from '@/context/EstadiosContext';
-import { useEventos } from '@/context/EventosContext';
+import { EstadioService } from '@/services/EstadioService';
+import { EventoService } from '@/services/EventoService';
+import { Estadio } from '@/types/estadio';
+import { Evento } from '@/types/evento';
+import { confirmar, mostrarAlerta } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function Estadios() {
-    const { eventos } = useEventos();
-    const { estadios, eliminarEstadio } = useEstadios();
     const router = useRouter();
     const [search, setSearch] = useState('');
-    const borrarEstadio = (id: number) => {
-        const estadio = estadios.find(
-            e => e.id === id
-        );
+    const [estadios, setEstadios] = useState<Estadio[]>([]);
+    const [eventos, setEventos] = useState<Evento[]>([]);
 
+    const cargar = () => {
+        EstadioService.listar().then(setEstadios).catch(() => {});
+        EventoService.listar().then(setEventos).catch(() => {});
+    };
+
+    useEffect(() => {
+        cargar();
+    }, []);
+
+    const borrarEstadio = async (id: number) => {
         const tieneEventos = eventos.some(
-            evento => evento.estadio === estadio?.nombre
+            evento => evento.estadio.id === id
         );
 
         if (tieneEventos) {
-            Alert.alert(
+            mostrarAlerta(
                 'No se puede eliminar',
                 'Este estadio tiene eventos asociados.'
             );
             return;
         }
 
-        Alert.alert(
+        const ok = await confirmar(
             'Eliminar estadio',
-            '¿Está seguro que desea eliminar este estadio?',
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Eliminar',
-                    style: 'destructive',
-                    onPress: () => eliminarEstadio(id),
-                },
-            ]
+            '¿Está seguro que desea eliminar este estadio?'
         );
+        if (!ok) return;
+
+        try {
+            await EstadioService.eliminar(id);
+            cargar();
+        } catch (error) {
+            mostrarAlerta(
+                'Error',
+                error instanceof Error ? error.message : 'No se pudo eliminar el estadio'
+            );
+        }
     };
     const estadiosFiltrados = estadios.filter((estadio) =>
-        estadio.nombre.toLowerCase().includes(search.toLowerCase())
+        estadio.nombreEstadio.toLowerCase().includes(search.toLowerCase())
     );
     return (
         <View style={styles.container}>
@@ -73,9 +82,12 @@ export default function Estadios() {
             {/* Lista */}
             {estadiosFiltrados.map((estadio) => {
 
-                // 👇 ACA VA (este es el lugar correcto)
                 const tieneEventosAsociados = eventos.some(
-                    e => e.estadio === estadio.nombre
+                    e => e.estadio.id === estadio.id
+                );
+
+                const capacidadTotal = estadio.sectores.reduce(
+                    (acc, sector) => acc + sector.capMax, 0
                 );
 
                 return (
@@ -92,15 +104,15 @@ export default function Estadios() {
                         {/* TEXTO A LA DERECHA */}
                         <View style={styles.cardContent}>
                             <Text style={styles.nombre}>
-                                {estadio.nombre}
+                                {estadio.nombreEstadio}
                             </Text>
 
                             <Text style={styles.info}>
-                                {estadio.ciudad}
+                                {estadio.ubicacion}
                             </Text>
 
                             <Text style={styles.info}>
-                                {estadio.capacidad.toLocaleString()}
+                                {capacidadTotal.toLocaleString()}
                             </Text>
                         </View>
 

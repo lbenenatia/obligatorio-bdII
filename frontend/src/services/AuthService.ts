@@ -1,48 +1,23 @@
-import { setUsuarioLogueado } from '@/data/sesion';
-import { usuariosMock } from '@/data/usuarios';
-import { Usuario } from '@/types/usuario';
+import { api } from '@/services/api';
+
+export interface RegistroGeneralRequest {
+    email: string;
+    contrasena: string;
+    nombre: string;
+    apellido: string;
+    paisDocumento: string;
+    nroDocumento: string;
+    documentoTipo: string;
+    localidad: string;
+    calle: string;
+    paisDireccion: string;
+    nroDireccion: number;
+    codigoPostal: string;
+    telefonos: string;
+}
 
 export const AuthService = {
-    login: async (
-        email: string,
-        password: string
-    ) => {
-        const usuario = usuariosMock.find(
-            u =>
-                u.email === email &&
-                u.password === password
-        );
-
-        if (!usuario) {
-            throw new Error(
-                'Credenciales incorrectas'
-            );
-        }
-        if (!usuario) {
-            throw new Error(
-                'Credenciales incorrectas'
-            );
-        }
-
-        setUsuarioLogueado(usuario);
-
-        return usuario;
-    },
-    register: async (usuario: Usuario) => {
-        const existeUsuario = usuariosMock.some(
-            u =>
-                u.email.toLowerCase() ===
-                usuario.email.toLowerCase()
-        );
-
-        if (existeUsuario) {
-            throw new Error(
-                'Ya existe una cuenta con ese correo'
-            );
-        }
-
-        usuariosMock.push(usuario);
-
-        return usuario;
+    registrarEspectador: async (datos: RegistroGeneralRequest) => {
+        return api.post<string>('/auth/registro/espectador', datos);
     },
 };

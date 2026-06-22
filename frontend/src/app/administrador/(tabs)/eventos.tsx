@@ -1,11 +1,18 @@
-import { useEventos } from '@/context/EventosContext';
+import { EventoService } from '@/services/EventoService';
+import { Evento } from '@/types/evento';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Eventos() {
     const router = useRouter();
-    const { eventos } = useEventos();
+    const [eventos, setEventos] = useState<Evento[]>([]);
+
+    useEffect(() => {
+        EventoService.listar().then(setEventos).catch(() => {});
+    }, []);
+
     return (
         <View style={styles.container}>
 
@@ -31,15 +38,15 @@ export default function Eventos() {
 
                         <View style={styles.eventInfo}>
                             <Text style={styles.eventTitle}>
-                                {evento.paisLocal} vs {evento.paisVisitante}
+                                {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
                             </Text>
 
                             <Text style={styles.eventDetail}>
-                                {evento.fecha} - {evento.hora}
+                                {evento.fechaEvento} - {evento.horaEvento}
                             </Text>
 
                             <Text style={styles.eventDetail}>
-                                {evento.estadio}
+                                {evento.estadio.nombreEstadio}
                             </Text>
                         </View>
 

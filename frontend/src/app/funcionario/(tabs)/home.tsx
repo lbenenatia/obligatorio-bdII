@@ -1,6 +1,23 @@
+import { FuncionarioService } from '@/services/FuncionarioService';
+import { Evento } from '@/types/evento';
+import { DispositivoAsignado, SectorAsignado } from '@/types/funcionario';
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 export default function Perfil() {
+    const [sectores, setSectores] = useState<SectorAsignado[]>([]);
+    const [evento, setEvento] = useState<Evento | undefined>(undefined);
+    const [dispositivo, setDispositivo] = useState<DispositivoAsignado | undefined>(undefined);
+
+    useEffect(() => {
+        FuncionarioService.miSector().then(setSectores).catch(() => {});
+        FuncionarioService.miEvento().then(setEvento).catch(() => {});
+        FuncionarioService.miDispositivo().then(setDispositivo).catch(() => {});
+    }, []);
+
+    const nombresSectores = sectores.map(s => `Sector ${s.codigo}`).join(', ');
+    const estadioAsignado = sectores[0]?.estadio;
+
     return (
         <View style={styles.container}>
             <Image
@@ -16,44 +33,65 @@ export default function Perfil() {
             <View style={styles.card}>
                 <Text style={styles.cardTitulo}>Evento asignado</Text>
 
-                <Text style={styles.partido}>
-                    Uruguay vs Argentina
-                </Text>
+                {evento ? (
+                    <>
+                        <Text style={styles.partido}>
+                            {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
+                        </Text>
 
-                <Text style={styles.detalle}>
-                    15 de junio de 2026
-                </Text>
+                        <Text style={styles.detalle}>
+                            {evento.fechaEvento}
+                        </Text>
 
-                <Text style={styles.detalle}>
-                    Estadio Centenario
-                </Text>
+                        <Text style={styles.detalle}>
+                            {evento.estadio.nombreEstadio}
+                        </Text>
+                    </>
+                ) : (
+                    <Text style={styles.detalle}>
+                        Sin evento asignado
+                    </Text>
+                )}
             </View>
 
             <View style={styles.card}>
                 <Text style={styles.cardTitulo}>Sector asignado</Text>
                 <Text style={styles.cardValor}>
-                    Sector B
+                    {nombresSectores || 'Sin sector asignado'}
                 </Text>
+
+                {estadioAsignado && (
+                    <Text style={styles.detalle}>
+                        {estadioAsignado.nombreEstadio}
+                    </Text>
+                )}
             </View>
 
             <View style={styles.card}>
                 <Text style={styles.cardTitulo}>Dispositivo</Text>
 
                 <Text style={styles.cardValor}>
-                    PDA-001
+                    {dispositivo?.dispositivoId ?? 'Sin dispositivo vinculado'}
                 </Text>
 
-                <View style={styles.estadoContainer}>
-                    <Text style={styles.estadoTexto}>
-                        Estado:
-                    </Text>
+                {dispositivo && (
+                    <View style={styles.estadoContainer}>
+                        <Text style={styles.estadoTexto}>
+                            Estado:
+                        </Text>
 
-                    <View style={styles.estadoCirculo} />
+                        <View
+                            style={[
+                                styles.estadoCirculo,
+                                !dispositivo.autorizado && styles.estadoCirculoInactivo,
+                            ]}
+                        />
 
-                    <Text style={styles.estadoTexto}>
-                        Conectado
-                    </Text>
-                </View>
+                        <Text style={styles.estadoTexto}>
+                            {dispositivo.autorizado ? 'Autorizado' : 'No autorizado'}
+                        </Text>
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -133,6 +171,10 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         backgroundColor: '#22C55E',
         marginHorizontal: 8,
+    },
+
+    estadoCirculoInactivo: {
+        backgroundColor: '#DC2626',
     },
 
     estadoTexto: {

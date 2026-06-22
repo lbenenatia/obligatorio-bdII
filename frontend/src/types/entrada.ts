@@ -1,16 +1,16 @@
 export interface Entrada {
     id: number;
-    usuarioId: number;
-
+    eventoId: number;
     equipoLocal: string;
     equipoVisitante: string;
-
-    fecha: string;
-    estadio: string;
-
-    sector: string;
-    asiento: string;
-
-    estado: 'ACTIVA' | 'USADA';
-
+    fechaEvento: string; // YYYY-MM-DD
+    horaEvento: string; // HH:mm:ss
+    estadioNombre: string;
+    sectorCodigo: 'A' | 'B' | 'C' | 'D';
+    precio: number;
+    numeroAsiento: number;
+    estado: 'DISPONIBLE' | 'VENDIDA' | 'TRANSFERIDA' | 'CONSUMIDA';
+    codigoQR: string | null;
+    consumida: boolean;
+    fechaConsumo: string | null;
 }

@@ -1,19 +1,13 @@
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ComprasProvider } from '../context/ComprasContext';
-import { EstadiosProvider } from '../context/EstadiosContext';
-import { EventoProvider } from '../context/EventosContext';
+import { AuthProvider } from '../context/AuthContext';
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <EventoProvider>
-        <EstadiosProvider>
-          <ComprasProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </ComprasProvider>
-        </EstadiosProvider>
-      </EventoProvider>
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

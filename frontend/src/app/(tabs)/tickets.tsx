@@ -1,7 +1,8 @@
-import { useEventos } from '@/context/EventosContext';
+import { EventoService } from '@/services/EventoService';
 import { Evento } from '@/types/evento';
+import { hoyLocalISO } from '@/utils/fecha';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     FlatList,
     ListRenderItem,
@@ -18,16 +19,20 @@ import { FontAwesome6 } from '@expo/vector-icons';
 export default function TicketsScreen() {
     const router = useRouter();
 
-    const { eventos } = useEventos();
+    const [eventos, setEventos] = useState<Evento[]>([]);
 
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState<'todos' | 'hoy'>('todos');
 
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = hoyLocalISO();
+
+    useEffect(() => {
+        EventoService.listar().then(setEventos).catch(() => {});
+    }, []);
 
     const filteredTickets = useMemo(() => {
         return eventos.filter((t) => {
-            const partido = `${t.paisLocal} vs ${t.paisVisitante}`;
+            const partido = `${t.equipoLocal.nombreEquipo} vs ${t.equipoVisitante.nombreEquipo}`;
 
             const matchSearch = partido
                 .toLowerCase()
@@ -36,7 +41,7 @@ export default function TicketsScreen() {
             const matchFilter =
                 filter === 'todos'
                     ? true
-                    : t.fecha === hoy;
+                    : t.fechaEvento === hoy;
 
             return matchSearch && matchFilter;
         });
@@ -46,15 +51,15 @@ export default function TicketsScreen() {
         <View style={styles.card}>
             <View style={styles.topInfo}>
                 <Text style={styles.title}>
-                    {item.paisLocal} vs {item.paisVisitante}
+                    {item.equipoLocal.nombreEquipo} vs {item.equipoVisitante.nombreEquipo}
                 </Text>
 
                 <Text style={styles.subtitle}>
-                    {item.fecha}
+                    {item.fechaEvento}
                 </Text>
 
                 <Text style={styles.subtitle}>
-                    {item.hora} - {item.estadio}
+                    {item.horaEvento} - {item.estadio.nombreEstadio}
                 </Text>
             </View>
 
@@ -66,10 +71,10 @@ export default function TicketsScreen() {
                             pathname: '/compra',
                             params: {
                                 id: String(item.id),
-                                match: `${item.paisLocal} vs ${item.paisVisitante}`,
-                                date: item.fecha,
-                                time: item.hora,
-                                estadio: item.estadio,
+                                match: `${item.equipoLocal.nombreEquipo} vs ${item.equipoVisitante.nombreEquipo}`,
+                                date: item.fechaEvento,
+                                time: item.horaEvento,
+                                estadio: item.estadio.nombreEstadio,
                             },
                         })
                     }

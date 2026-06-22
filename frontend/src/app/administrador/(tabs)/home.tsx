@@ -1,32 +1,40 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { useCompras } from '@/context/ComprasContext';
-import { useEventos } from '@/context/EventosContext';
-import { getUsuarioLogueado } from '@/data/sesion';
-import { usuariosMock } from '@/data/usuarios';
+import { useAuth } from '@/context/AuthContext';
+import { CompraService } from '@/services/CompraService';
+import { EventoService } from '@/services/EventoService';
+import { TransferenciaService } from '@/services/TransferenciaService';
+import { UsuarioService } from '@/services/UsuarioService';
 
 export default function Perfil() {
-    const usuario = getUsuarioLogueado();
-    const { compras } = useCompras();
+    const { usuario } = useAuth();
 
-    // 📅 EVENTOS ACTIVOS (por ahora todos)
-    const { eventos } = useEventos();
-    const eventosActivos = eventos.length;
+    const [eventosActivos, setEventosActivos] = useState(0);
+    const [entradasVendidas, setEntradasVendidas] = useState(0);
+    const [usuariosRegistrados, setUsuariosRegistrados] = useState(0);
+    const [transferencias, setTransferencias] = useState(0);
 
-    // 🎟 ENTRADAS VENDIDAS
-    const entradasVendidas = compras.reduce(
-        (acc, c) => acc + c.cantidad,
-        0
-    );
+    useEffect(() => {
+        EventoService.listar()
+            .then(eventos => setEventosActivos(eventos.length))
+            .catch(() => {});
 
-    // 👤 USUARIOS
-    const usuariosRegistrados = usuariosMock.length;
+        CompraService.listarTodas()
+            .then(compras =>
+                setEntradasVendidas(compras.reduce((acc, c) => acc + c.cantEntradas, 0))
+            )
+            .catch(() => {});
 
-    // 🔁 TRANSFERENCIAS
-    const transferencias = compras.filter(
-        c => c.transferido === true
-    ).length;
+        UsuarioService.contar()
+            .then(setUsuariosRegistrados)
+            .catch(() => {});
+
+        TransferenciaService.listarTodas()
+            .then(transferencias => setTransferencias(transferencias.length))
+            .catch(() => {});
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -42,7 +50,7 @@ export default function Perfil() {
                 </Text>
 
                 <Text style={styles.subtitle}>
-                    {usuario?.rol || 'ADMIN'} - {usuario?.pais || 'Uruguay'}
+                    {usuario?.rol || 'ADMINISTRADOR'}
                 </Text>
             </View>
 

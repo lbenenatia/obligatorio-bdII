@@ -1,18 +1,31 @@
-import { useCompras } from '@/context/ComprasContext';
+import { QRService } from '@/services/QRService';
 import { FontAwesome6 } from '@expo/vector-icons';
 import * as Print from 'expo-print';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function PagoAprobado() {
     const router = useRouter();
-    const { compras } = useCompras();
-    const ultimaCompra = compras[compras.length - 1];
-    const descargarPDF = async () => {
-        if (!ultimaCompra) return;
+    const { compraId, entradaIds, match, date, time, estadio, sector, cantidad } =
+        useLocalSearchParams<{
+            compraId: string;
+            entradaIds: string;
+            match: string;
+            date: string;
+            time: string;
+            estadio: string;
+            sector: string;
+            cantidad: string;
+        }>();
 
-        const qrValue = `ticket-${ultimaCompra.id}`;
+    const primeraEntradaId = Number(entradaIds?.split(',')[0]);
+
+    const descargarPDF = async () => {
+        if (!primeraEntradaId) return;
+
+        const entrada = await QRService.generar(primeraEntradaId);
+        const qrValue = entrada.codigoQR ?? `entrada-${primeraEntradaId}`;
 
         const html = `
     <html>
@@ -37,27 +50,27 @@ export default function PagoAprobado() {
             <div style="padding:0 20px 20px 20px;">
 
               <h2 style="font-size:18px; margin:10px 0;">
-                ${ultimaCompra.match}
+                ${match}
               </h2>
 
               <p style="font-size:14px; margin:5px 0; color:#444;">
-                ${ultimaCompra.date} • ${ultimaCompra.time}
+                ${date} • ${time}
               </p>
 
               <p style="font-size:14px; margin:5px 0; color:#444;">
-                Estadio: ${ultimaCompra.estadio}
+                Estadio: ${estadio}
               </p>
 
               <p style="font-size:14px; margin:5px 0; color:#444;">
-                Sector ${ultimaCompra.sector} • Entradas ${ultimaCompra.cantidad}
+                Sector ${sector} • Entradas ${cantidad}
               </p>
 
               <hr style="margin:15px 0;" />
 
               <!-- QR -->
               <div style="margin:15px 0;">
-                <img 
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${qrValue}"
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(qrValue)}"
                 />
               </div>
 
@@ -101,28 +114,14 @@ export default function PagoAprobado() {
 
             <View style={styles.actionsContainer}>
                 <TouchableOpacity style={styles.primaryButton}
-                    onPress={() => {
-                        if (!ultimaCompra) return;
-
-                        router.push({
-                            pathname: '/misEntradas',
-                            params: {
-                                match: ultimaCompra.match,
-                                date: ultimaCompra.date,
-                                time: ultimaCompra.time,
-                                estadio: ultimaCompra.estadio,
-                                sector: ultimaCompra.sector,
-                                cantidad: ultimaCompra.cantidad,
-                            },
-                        });
-                    }}>
+                    onPress={() => router.push('/misEntradas')}>
                     <Text style={styles.primaryButtonText}>
                         Ver mis entradas
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.secondaryButton}
-                    onPress={() => router.push('/home')}>
+                    onPress={() => router.push('/(tabs)/home')}>
                     <Text style={styles.secondaryButtonText}>
                         Volver al inicio
                     </Text>
@@ -133,18 +132,17 @@ export default function PagoAprobado() {
                 <TouchableOpacity
                     style={styles.footerButton}
                     onPress={() => {
-                        if (!ultimaCompra) return;
+                        if (!primeraEntradaId) return;
 
                         router.push({
                             pathname: '/transfer',
                             params: {
-                                id: ultimaCompra.id,
-                                match: ultimaCompra.match,
-                                date: ultimaCompra.date,
-                                time: ultimaCompra.time,
-                                estadio: ultimaCompra.estadio,
-                                sector: ultimaCompra.sector,
-                                cantidad: ultimaCompra.cantidad,
+                                id: String(primeraEntradaId),
+                                match,
+                                date,
+                                time,
+                                estadio,
+                                sector,
                             },
                         });
                     }}

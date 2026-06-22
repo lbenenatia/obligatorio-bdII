@@ -1,4 +1,4 @@
-import { cerrarSesion, getUsuarioLogueado } from '@/data/sesion';
+import { useAuth } from '@/context/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -6,7 +6,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function Perfil() {
     const router = useRouter();
 
-    const usuario = getUsuarioLogueado();
+    const { usuario, logout } = useAuth();
 
     if (!usuario) {
         return (
@@ -51,34 +51,32 @@ export default function Perfil() {
                     {/* TELÉFONOS */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Teléfonos</Text>
-                        {usuario.telefonos.map((tel, i) => (
-                            <Text key={i} style={styles.value}>
-                                {tel}
-                            </Text>
-                        ))}
+                        <Text style={styles.value}>
+                            {usuario.telefonos || 'Sin teléfono'}
+                        </Text>
                     </View>
 
                     {/* DOCUMENTO */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Documento</Text>
                         <Text style={styles.value}>
-                            {usuario.tipoDocumento || 'Sin datos'} - {usuario.paisDocumento || ''}
+                            {usuario.documentoTipo || 'Sin datos'} - {usuario.paisDocumento || ''}
                         </Text>
                         <Text style={styles.subvalue}>
-                            {usuario.numeroDocumento || ''}
+                            {usuario.nroDocumento || ''}
                         </Text>
                     </View>
 
                     {/* DIRECCIÓN */}
                     <View style={styles.block}>
                         <Text style={styles.label}>Dirección</Text>
-                        <Text style={styles.value}>{usuario.pais}</Text>
-                        <Text style={styles.subvalue}>{usuario.localidad}</Text>
+                        <Text style={styles.value}>{usuario.direccion?.paisDireccion}</Text>
+                        <Text style={styles.subvalue}>{usuario.direccion?.localidad}</Text>
                         <Text style={styles.subvalue}>
-                            {usuario.calle} {usuario.numeroPuerta}
+                            {usuario.direccion?.calle} {usuario.direccion?.nroDireccion ?? ''}
                         </Text>
                         <Text style={styles.subvalue}>
-                            CP: {usuario.cp}
+                            CP: {usuario.direccion?.codigoPostal}
                         </Text>
                     </View>
 
@@ -86,8 +84,8 @@ export default function Perfil() {
 
                 <TouchableOpacity
                     style={styles.botonCerrarSesion}
-                    onPress={() => {
-                        cerrarSesion();
+                    onPress={async () => {
+                        await logout();
                         router.replace('/');
                     }}
                 >

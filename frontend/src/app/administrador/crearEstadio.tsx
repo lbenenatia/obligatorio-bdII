@@ -1,9 +1,9 @@
-import { useEstadios } from '@/context/EstadiosContext';
+import { EstadioService } from '@/services/EstadioService';
+import { mostrarAlerta } from '@/utils/alert';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    Modal,
     ScrollView,
     StyleSheet,
     Text,
@@ -13,76 +13,51 @@ import {
 } from 'react-native';
 
 export default function CrearEstadio() {
-    const { agregarEstadio } = useEstadios();
     const router = useRouter();
 
-    const [nombre, setNombre] = useState('');
-    const [pais, setPais] = useState('');
-    const [ciudad, setCiudad] = useState('');
-    const [capacidad, setCapacidad] = useState('');
-    const [capacidadA, setCapacidadA] = useState('');
+    const [nombreEstadio, setNombreEstadio] = useState('');
+    const [ubicacion, setUbicacion] = useState('');
+    const [capMaxA, setCapMaxA] = useState('');
     const [precioA, setPrecioA] = useState('');
 
-    const [capacidadB, setCapacidadB] = useState('');
+    const [capMaxB, setCapMaxB] = useState('');
     const [precioB, setPrecioB] = useState('');
 
-    const [capacidadC, setCapacidadC] = useState('');
+    const [capMaxC, setCapMaxC] = useState('');
     const [precioC, setPrecioC] = useState('');
 
-    const [capacidadD, setCapacidadD] = useState('');
+    const [capMaxD, setCapMaxD] = useState('');
     const [precioD, setPrecioD] = useState('');
-    const [modalPaisVisible, setModalPaisVisible] = useState(false);
 
-    const paises = ['México', 'Estados Unidos', 'Canadá'];
+    const [guardando, setGuardando] = useState(false);
 
-    const guardarEstadio = () => {
-        if (!nombre || !pais || !ciudad || !capacidad) {
+    const guardarEstadio = async () => {
+        if (!nombreEstadio || !ubicacion) {
             return;
         }
 
-        const capacidadTotal = Number(capacidad);
+        setGuardando(true);
+        try {
+            await EstadioService.crear({
+                nombreEstadio,
+                ubicacion,
+                sectores: [
+                    { codigo: 'A', capMax: Number(capMaxA || 0), precio: Number(precioA || 0) },
+                    { codigo: 'B', capMax: Number(capMaxB || 0), precio: Number(precioB || 0) },
+                    { codigo: 'C', capMax: Number(capMaxC || 0), precio: Number(precioC || 0) },
+                    { codigo: 'D', capMax: Number(capMaxD || 0), precio: Number(precioD || 0) },
+                ],
+            });
 
-        const totalSectores =
-            Number(capacidadA || 0) +
-            Number(capacidadB || 0) +
-            Number(capacidadC || 0) +
-            Number(capacidadD || 0);
-
-        if (totalSectores > capacidadTotal) {
-            alert(
-                'La suma de las capacidades de los sectores supera la capacidad total del estadio.'
+            router.push('/administrador/estadios');
+        } catch (error) {
+            mostrarAlerta(
+                'Error',
+                error instanceof Error ? error.message : 'No se pudo crear el estadio'
             );
-            return;
+        } finally {
+            setGuardando(false);
         }
-
-        agregarEstadio({
-            id: Date.now(),
-            nombre,
-            pais,
-            ciudad,
-            capacidad: capacidadTotal,
-
-            sectores: {
-                A: {
-                    capacidad: Number(capacidadA || 0),
-                    precio: Number(precioA || 0),
-                },
-                B: {
-                    capacidad: Number(capacidadB || 0),
-                    precio: Number(precioB || 0),
-                },
-                C: {
-                    capacidad: Number(capacidadC || 0),
-                    precio: Number(precioC || 0),
-                },
-                D: {
-                    capacidad: Number(capacidadD || 0),
-                    precio: Number(precioD || 0),
-                },
-            },
-        });
-
-        router.push('/administrador/estadios');
     };
 
     return (
@@ -108,42 +83,20 @@ export default function CrearEstadio() {
                     {/* NOMBRE */}
                     <Text style={styles.label}>Nombre del estadio</Text>
                     <TextInput
-                        value={nombre}
-                        onChangeText={setNombre}
+                        value={nombreEstadio}
+                        onChangeText={setNombreEstadio}
                         placeholder="Ej. Estadio Nacional"
                         placeholderTextColor="#6B7280"
                         style={styles.input}
                     />
 
-                    {/* PAÍS (SELECTOR) */}
-                    <Text style={styles.label}>País</Text>
-                    <TouchableOpacity
-                        style={styles.selector}
-                        onPress={() => setModalPaisVisible(true)}
-                    >
-                        <Text style={pais ? styles.selectorText : styles.placeholderText}>
-                            {pais || 'Seleccione país'}
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* CIUDAD */}
-                    <Text style={styles.label}>Ciudad</Text>
+                    {/* UBICACIÓN */}
+                    <Text style={styles.label}>Ubicación</Text>
                     <TextInput
-                        value={ciudad}
-                        onChangeText={setCiudad}
-                        placeholder="Ej. Ciudad de México"
+                        value={ubicacion}
+                        onChangeText={setUbicacion}
+                        placeholder="Ej. Ciudad de México, México"
                         placeholderTextColor="#6B7280"
-                        style={styles.input}
-                    />
-
-                    {/* CAPACIDAD */}
-                    <Text style={styles.label}>Capacidad total</Text>
-                    <TextInput
-                        value={capacidad}
-                        onChangeText={setCapacidad}
-                        placeholder="Ej. 8700"
-                        placeholderTextColor="#6B7280"
-                        keyboardType="numeric"
                         style={styles.input}
                     />
 
@@ -153,8 +106,8 @@ export default function CrearEstadio() {
                         style={styles.input}
                         placeholder="Capacidad Sector A"
                         keyboardType="numeric"
-                        value={capacidadA}
-                        onChangeText={setCapacidadA}
+                        value={capMaxA}
+                        onChangeText={setCapMaxA}
                     />
 
                     <TextInput
@@ -171,8 +124,8 @@ export default function CrearEstadio() {
                         style={styles.input}
                         placeholder="Capacidad Sector B"
                         keyboardType="numeric"
-                        value={capacidadB}
-                        onChangeText={setCapacidadB}
+                        value={capMaxB}
+                        onChangeText={setCapMaxB}
                     />
 
                     <TextInput
@@ -189,8 +142,8 @@ export default function CrearEstadio() {
                         style={styles.input}
                         placeholder="Capacidad Sector C"
                         keyboardType="numeric"
-                        value={capacidadC}
-                        onChangeText={setCapacidadC}
+                        value={capMaxC}
+                        onChangeText={setCapMaxC}
                     />
 
                     <TextInput
@@ -207,8 +160,8 @@ export default function CrearEstadio() {
                         style={styles.input}
                         placeholder="Capacidad Sector D"
                         keyboardType="numeric"
-                        value={capacidadD}
-                        onChangeText={setCapacidadD}
+                        value={capMaxD}
+                        onChangeText={setCapMaxD}
                     />
 
                     <TextInput
@@ -223,50 +176,13 @@ export default function CrearEstadio() {
                     <TouchableOpacity
                         style={styles.saveButton}
                         onPress={guardarEstadio}
+                        disabled={guardando}
                     >
                         <Text style={styles.saveButtonText}>
-                            Guardar estadio
+                            {guardando ? 'Guardando...' : 'Guardar estadio'}
                         </Text>
                     </TouchableOpacity>
                 </View>
-
-                {/* MODAL PAÍS */}
-                <Modal
-                    visible={modalPaisVisible}
-                    transparent
-                    animationType="fade"
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>
-                                Seleccione país
-                            </Text>
-
-                            {paises.map((item) => (
-                                <TouchableOpacity
-                                    key={item}
-                                    style={styles.modalItem}
-                                    onPress={() => {
-                                        setPais(item);
-                                        setModalPaisVisible(false);
-                                    }}
-                                >
-                                    <Text style={styles.modalItemText}>
-                                        {item}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-
-                            <TouchableOpacity
-                                onPress={() => setModalPaisVisible(false)}
-                            >
-                                <Text style={styles.closeModal}>
-                                    Cancelar
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </Modal>
             </ScrollView>
         </View>
     );
@@ -364,64 +280,5 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 17,
         fontWeight: 'bold',
-    },
-    selector: {
-        height: 55,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 14,
-        justifyContent: 'center',
-        paddingHorizontal: 15,
-        backgroundColor: '#F9FAFB',
-        marginBottom: 18,
-    },
-
-    selectorText: {
-        fontSize: 16,
-        color: '#111827',
-    },
-
-    placeholderText: {
-        fontSize: 16,
-        color: '#6B7280',
-    },
-
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
-    modalContent: {
-        width: '80%',
-        backgroundColor: '#FFF',
-        borderRadius: 16,
-        padding: 20,
-    },
-
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#111827',
-    },
-
-    modalItem: {
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-
-    modalItemText: {
-        fontSize: 16,
-        color: '#111827',
-    },
-
-    closeModal: {
-        marginTop: 15,
-        textAlign: 'center',
-        color: '#2563EB',
-        fontWeight: '600',
     },
 });

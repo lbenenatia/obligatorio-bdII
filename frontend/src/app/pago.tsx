@@ -1,14 +1,12 @@
-import { useCompras } from '@/context/ComprasContext';
+import { CompraService } from '@/services/CompraService';
+import { mostrarAlerta } from '@/utils/alert';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getUsuarioLogueado } from '../data/sesion';
 
 export default function PagoScreen() {
     const router = useRouter();
-    const { agregarCompra } = useCompras();
-    const usuario = getUsuarioLogueado();
 
     const {
         eventoId,
@@ -22,6 +20,7 @@ export default function PagoScreen() {
     } = useLocalSearchParams();
 
     const [metodoPago, setMetodoPago] = useState('tarjeta');
+    const [procesando, setProcesando] = useState(false);
 
     const cantidadNum = Number(cantidad ?? 0);
     const precioNum = Number(precio ?? 0);
@@ -30,27 +29,34 @@ export default function PagoScreen() {
     const comision = subtotal * 0.05;
     const total = subtotal + comision;
 
-    const finalizarPago = () => {
-        const compra = {
-            id: String(Date.now()),
-            usuarioId: usuario?.id ?? 0,
-            eventoId: Number(eventoId ?? 0),
-            match: String(match),
-            date: String(date),
-            time: String(time),
-            estadio: String(estadio),
-            sector: sector as 'A' | 'B',
+    const finalizarPago = async () => {
+        setProcesando(true);
+        try {
+            const compra = await CompraService.crear(Number(eventoId), String(sector), cantidadNum);
+            await CompraService.confirmar(compra.id);
+            await CompraService.pagar(compra.id);
 
-            cantidad: cantidadNum,
-            precioUnitario: precioNum,
-            total,
-
-            transferido: false,
-        };
-
-        agregarCompra(compra);
-
-        router.push('/pagoAprobado');
+            router.push({
+                pathname: '/pagoAprobado',
+                params: {
+                    compraId: String(compra.id),
+                    entradaIds: compra.entradas.map(e => e.id).join(','),
+                    match: String(match),
+                    date: String(date),
+                    time: String(time),
+                    estadio: String(estadio),
+                    sector: String(sector),
+                    cantidad: String(cantidadNum),
+                },
+            });
+        } catch (error) {
+            mostrarAlerta(
+                'Error al procesar el pago',
+                error instanceof Error ? error.message : 'Ocurrió un error'
+            );
+        } finally {
+            setProcesando(false);
+        }
     };
 
     return (
@@ -153,9 +159,10 @@ export default function PagoScreen() {
             <TouchableOpacity
                 style={styles.button}
                 onPress={finalizarPago}
+                disabled={procesando}
             >
                 <Text style={styles.buttonText}>
-                    Finalizar pago
+                    {procesando ? 'Procesando...' : 'Finalizar pago'}
                 </Text>
             </TouchableOpacity>
         </View>

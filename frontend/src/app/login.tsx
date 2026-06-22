@@ -1,8 +1,8 @@
-import { AuthService } from '@/services/AuthService';
+import { useAuth } from '@/context/AuthContext';
+import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    Alert,
     Image,
     StyleSheet,
     Text,
@@ -15,9 +15,10 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
+    const { login } = useAuth();
     const iniciarSesion = async () => {
         if (!email.trim() || !password.trim()) {
-            Alert.alert(
+            mostrarAlerta(
                 'Campos incompletos',
                 'Ingresá correo y contraseña'
             );
@@ -25,13 +26,10 @@ export default function LoginScreen() {
         }
 
         try {
-            const usuario = await AuthService.login(
-                email,
-                password
-            );
+            const usuario = await login(email, password);
 
             switch (usuario.rol) {
-                case 'ADMIN':
+                case 'ADMINISTRADOR':
                     router.replace('/administrador/home');
                     break;
 
@@ -39,12 +37,12 @@ export default function LoginScreen() {
                     router.replace('/funcionario/home');
                     break;
 
-                case 'USUARIO':
+                case 'GENERAL':
                     router.replace('/(tabs)/home');
                     break;
             }
         } catch (error) {
-            Alert.alert(
+            mostrarAlerta(
                 'Error',
                 'Correo o contraseña incorrectos'
             );

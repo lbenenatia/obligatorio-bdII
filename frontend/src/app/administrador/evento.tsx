@@ -1,78 +1,80 @@
-import { useCompras } from '@/context/ComprasContext';
-import { useEventos } from '@/context/EventosContext';
+import { EventoService } from '@/services/EventoService';
+import { DisponibilidadSector, Evento } from '@/types/evento';
+import { confirmar, mostrarAlerta } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Alert,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
 
-export default function Evento() {
+export default function EventoDetalle() {
     const [tabActiva, setTabActiva] = useState('informacion');
     const router = useRouter();
     const { id } = useLocalSearchParams();
-    const { eventos, eliminarEvento } = useEventos();
-    const { compras } = useCompras();
-    const evento = eventos.find(
-        (e) => e.id === Number(id)
-    );
+
+    const [evento, setEvento] = useState<Evento | null>(null);
+    const [disponibilidad, setDisponibilidad] = useState<DisponibilidadSector[]>([]);
+
+    useEffect(() => {
+        if (!id) return;
+
+        EventoService.obtener(Number(id)).then(setEvento).catch(() => {});
+        EventoService.disponibilidad(Number(id)).then(setDisponibilidad).catch(() => {});
+    }, [id]);
 
     if (!evento) {
         return (
             <View style={styles.container}>
                 <Text style={styles.titulo}>
-                    Evento no encontrado
+                    Cargando...
                 </Text>
             </View>
         );
     }
-    const capacidad = evento.capacidad;
-    const entradasVendidas = compras
-        .filter(c => c.eventoId === evento.id)
-        .reduce((acc, c) => acc + c.cantidad, 0);
-    const entradasDisponibles =
-        evento.capacidad - entradasVendidas;
+
+    const capacidadTotal = disponibilidad.reduce(
+        (acc, s) => acc + s.capMax, 0
+    );
+    const disponiblesTotal = disponibilidad.reduce(
+        (acc, s) => acc + s.disponibles, 0
+    );
+    const entradasVendidas = capacidadTotal - disponiblesTotal;
+    const entradasDisponibles = disponiblesTotal;
     const estadoEvento =
         entradasDisponibles <= 0
             ? 'Agotado'
             : 'Disponible';
-    const borrarEvento = () => {
+    const sectoresHabilitados = disponibilidad.length;
+
+    const borrarEvento = async () => {
         if (entradasVendidas > 0) {
-            Alert.alert(
+            mostrarAlerta(
                 'No se puede eliminar',
                 `El evento tiene ${entradasVendidas} entradas vendidas.`
             );
             return;
         }
 
-        Alert.alert(
+        const ok = await confirmar(
             'Eliminar evento',
-            '¿Está seguro que desea eliminar este evento?',
-            [
-                {
-                    text: 'Cancelar',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Eliminar',
-                    style: 'destructive',
-                    onPress: () => {
-                        eliminarEvento(Number(id));
-                        router.push('/administrador/eventos');
-                    },
-                },
-            ]
+            '¿Está seguro que desea eliminar este evento?'
         );
+        if (!ok) return;
+
+        try {
+            await EventoService.eliminar(Number(id));
+            router.push('/administrador/eventos');
+        } catch (error) {
+            mostrarAlerta(
+                'Error',
+                error instanceof Error ? error.message : 'No se pudo eliminar el evento'
+            );
+        }
     };
 
-    const sectoresHabilitados = Object.values(
-        evento.sectores
-    ).filter(
-        sector => sector.capacidad > 0
-    ).length;
     return (
         <View style={{ flex: 1 }}>
 
@@ -88,15 +90,15 @@ export default function Evento() {
                 <Text style={styles.titulo}>Detalles del evento</Text>
 
                 <Text style={styles.partido}>
-                    {evento.paisLocal} vs {evento.paisVisitante}
+                    {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
                 </Text>
 
                 <Text style={styles.info}>
-                    {evento.fecha} - {evento.hora}
+                    {evento.fechaEvento} - {evento.horaEvento}
                 </Text>
 
                 <Text style={styles.info}>
-                    {evento.estadio}
+                    {evento.estadio.nombreEstadio}
                 </Text>
 
                 <View style={styles.componente}>
@@ -146,7 +148,7 @@ export default function Evento() {
                                 </Text>
 
                                 <Text style={styles.valor}>
-                                    {capacidad}
+                                    {capacidadTotal}
                                 </Text>
                             </View>
                             <View style={styles.fila}>
@@ -201,53 +203,21 @@ export default function Evento() {
                         </>
                     ) : (
                         <>
-                            {evento.sectores.A && (
-                                <View style={styles.fila}>
-                                    <Text style={styles.label}>
-                                        Sector A
-                                    </Text>
+                            {disponibilidad.map(sector => {
+                                const vendidasSector = sector.capMax - sector.disponibles;
 
-                                    <Text style={styles.valor}>
-                                        {evento.sectores.A.capacidad} lugares - USD {evento.sectores.A.precio}
-                                    </Text>
-                                </View>
-                            )}
+                                return (
+                                    <View key={sector.codigo} style={styles.fila}>
+                                        <Text style={styles.label}>
+                                            Sector {sector.codigo}
+                                        </Text>
 
-                            {evento.sectores.B && (
-                                <View style={styles.fila}>
-                                    <Text style={styles.label}>
-                                        Sector B
-                                    </Text>
-
-                                    <Text style={styles.valor}>
-                                        {evento.sectores.B.capacidad} lugares - USD {evento.sectores.B.precio}
-                                    </Text>
-                                </View>
-                            )}
-
-                            {evento.sectores.C && (
-                                <View style={styles.fila}>
-                                    <Text style={styles.label}>
-                                        Sector C
-                                    </Text>
-
-                                    <Text style={styles.valor}>
-                                        {evento.sectores.C.capacidad} lugares - USD {evento.sectores.C.precio}
-                                    </Text>
-                                </View>
-                            )}
-
-                            {evento.sectores.D && (
-                                <View style={styles.fila}>
-                                    <Text style={styles.label}>
-                                        Sector D
-                                    </Text>
-
-                                    <Text style={styles.valor}>
-                                        {evento.sectores.D.capacidad} lugares - USD {evento.sectores.D.precio}
-                                    </Text>
-                                </View>
-                            )}
+                                        <Text style={styles.valor}>
+                                            {vendidasSector}/{sector.capMax} vendidas - USD {sector.precio}
+                                        </Text>
+                                    </View>
+                                );
+                            })}
                         </>
                     )}
 

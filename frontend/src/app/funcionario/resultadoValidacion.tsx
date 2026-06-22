@@ -3,7 +3,23 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ResultadoValidacion() {
-    const { estado } = useLocalSearchParams();
+    const {
+        estado,
+        equipoLocal,
+        equipoVisitante,
+        fechaEvento,
+        estadioNombre,
+        sectorCodigo,
+        numeroAsiento,
+    } = useLocalSearchParams<{
+        estado: string;
+        equipoLocal?: string;
+        equipoVisitante?: string;
+        fechaEvento?: string;
+        estadioNombre?: string;
+        sectorCodigo?: string;
+        numeroAsiento?: string;
+    }>();
     const router = useRouter();
 
     const esValida = estado === 'valida';
@@ -52,15 +68,17 @@ export default function ResultadoValidacion() {
             <View style={styles.card}>
 
                 <Text style={styles.tituloPartido}>
-                    Equipo A vs Equipo B
+                    {equipoLocal && equipoVisitante
+                        ? `${equipoLocal} vs ${equipoVisitante}`
+                        : 'Entrada no identificada'}
                 </Text>
 
                 <Text style={styles.fecha}>
-                    12/06/2026
+                    {fechaEvento ?? ''}
                 </Text>
 
                 <Text style={styles.estadio}>
-                    Estadio Centenario
+                    {estadioNombre ?? ''}
                 </Text>
 
                 {/* SOLO VALIDA TIENE DETALLE COMPLETO */}
@@ -70,17 +88,12 @@ export default function ResultadoValidacion() {
 
                         <View style={styles.fila}>
                             <Text style={styles.label}>Sector</Text>
-                            <Text style={styles.valor}>Sector B</Text>
+                            <Text style={styles.valor}>Sector {sectorCodigo}</Text>
                         </View>
 
                         <View style={styles.fila}>
-                            <Text style={styles.label}>Fila / Asiento</Text>
-                            <Text style={styles.valor}>15 / 12</Text>
-                        </View>
-
-                        <View style={styles.fila}>
-                            <Text style={styles.label}>Tipo</Text>
-                            <Text style={styles.valor}>General</Text>
+                            <Text style={styles.label}>Asiento</Text>
+                            <Text style={styles.valor}>{numeroAsiento}</Text>
                         </View>
                     </>
                 )}

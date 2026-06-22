@@ -1,14 +1,14 @@
-import { cerrarSesion, getUsuarioLogueado } from '@/data/sesion';
+import { useAuth } from '@/context/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function Perfil() {
     const router = useRouter();
-    const usuario = getUsuarioLogueado();
+    const { usuario, logout } = useAuth();
 
-    const handleCerrarSesion = () => {
-        cerrarSesion();
+    const handleCerrarSesion = async () => {
+        await logout();
         router.replace('/');
     };
 
@@ -16,7 +16,7 @@ export default function Perfil() {
         <View style={styles.container}>
             <FontAwesome name="user-circle" size={90} color="#FFFFFF" />
             <Text style={styles.nombre}>
-                {usuario?.nombre ?? 'Usuario'}
+                {usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario'}
             </Text>
 
             <View style={styles.centerContainer}>
@@ -31,44 +31,35 @@ export default function Perfil() {
 
                     <View style={styles.block}>
                         <Text style={styles.label}>Teléfono</Text>
-                        {usuario?.telefonos?.length ? (
-                            usuario.telefonos.map((tel, index) => (
-                                <Text
-                                    key={index}
-                                    style={styles.value}
-                                >
-                                    {tel}
-                                </Text>
-                            ))
-                        ) : (
-                            <Text style={styles.value}>-</Text>
-                        )}
+                        <Text style={styles.value}>
+                            {usuario?.telefonos || '-'}
+                        </Text>
                     </View>
 
                     <View style={styles.block}>
                         <Text style={styles.label}>Documento</Text>
                         <Text style={styles.value}>
-                            {usuario?.tipoDocumento || '-'} - {usuario?.paisDocumento || '-'}
+                            {usuario?.documentoTipo || '-'} - {usuario?.paisDocumento || '-'}
                         </Text>
 
                         <Text style={styles.subvalue}>
-                            {usuario?.numeroDocumento || '-'}
+                            {usuario?.nroDocumento || '-'}
                         </Text>
                     </View>
 
                     <View style={styles.block}>
                         <Text style={styles.label}>Dirección</Text>
                         <Text style={styles.value}>
-                            {usuario?.pais || '-'}
+                            {usuario?.direccion?.paisDireccion || '-'}
                         </Text>
 
                         <Text style={styles.subvalue}>
-                            {usuario?.localidad || '-'}
+                            {usuario?.direccion?.localidad || '-'}
                         </Text>
 
                         <Text style={styles.subvalue}>
-                            {usuario?.calle || '-'} {usuario?.numeroPuerta || ''}
-                            {usuario?.cp ? ` - CP ${usuario.cp}` : ''}
+                            {usuario?.direccion?.calle || '-'} {usuario?.direccion?.nroDireccion ?? ''}
+                            {usuario?.direccion?.codigoPostal ? ` - CP ${usuario.direccion.codigoPostal}` : ''}
                         </Text>
                     </View>
                 </View>
