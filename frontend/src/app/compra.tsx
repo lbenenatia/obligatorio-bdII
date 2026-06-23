@@ -3,7 +3,8 @@ import { DisponibilidadSector } from '@/types/evento';
 import { mostrarAlerta } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from './screen';
 
 const MAX_ENTRADAS_POR_COMPRA = 5;
 
@@ -32,7 +33,7 @@ export default function CompraScreen() {
                     setSectorSeleccionado(sectores[0].codigo);
                 }
             })
-            .catch(() => {});
+            .catch(() => { });
     }, [id]);
 
     const sectorActual = sectoresDisponibles.find(
@@ -70,9 +71,7 @@ export default function CompraScreen() {
     };
 
     return (
-        <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.container}>
+        <Screen>
             <View style={styles.imageContainer}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -177,7 +176,7 @@ export default function CompraScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
-        </ScrollView>
+        </Screen>
     );
 }
 const styles = StyleSheet.create({

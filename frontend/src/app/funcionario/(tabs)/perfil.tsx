@@ -1,8 +1,8 @@
-
 import { useAuth } from '@/context/AuthContext';
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from '../../screen';
 
 export default function Perfil() {
     const router = useRouter();
@@ -19,86 +19,87 @@ export default function Perfil() {
     }
 
     return (
-        <View style={styles.container}>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
 
-            {/* HEADER */}
-            <FontAwesome name="user-circle" size={90} color="#FFFFFF" />
+                {/* HEADER */}
+                <FontAwesome name="user-circle" size={90} color="#FFFFFF" />
 
-            <Text style={styles.nombre}>
-                {usuario.nombre}
-            </Text>
+                <Text style={styles.nombre}>
+                    {usuario.nombre}
+                </Text>
 
-            {/* CARD */}
-            <View style={styles.centerContainer}>
-                <View style={styles.card}>
+                {/* CARD */}
+                <View style={styles.centerContainer}>
+                    <View style={styles.card}>
 
-                    <Text style={styles.cardTitle}>
-                        Perfil del funcionario
-                    </Text>
+                        <Text style={styles.cardTitle}>
+                            Perfil del funcionario
+                        </Text>
 
-                    {/* EMAIL */}
-                    <View style={styles.block}>
-                        <Text style={styles.label}>Correo electrónico</Text>
-                        <Text style={styles.value}>{usuario.email}</Text>
+                        {/* EMAIL */}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Correo electrónico</Text>
+                            <Text style={styles.value}>{usuario.email}</Text>
+                        </View>
+
+                        {/* ROL */}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Rol</Text>
+                            <Text style={styles.value}>{usuario.rol}</Text>
+                        </View>
+
+                        {/* TELÉFONOS */}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Teléfonos</Text>
+                            <Text style={styles.value}>
+                                {usuario.telefonos || 'Sin teléfono'}
+                            </Text>
+                        </View>
+
+                        {/* DOCUMENTO */}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Documento</Text>
+                            <Text style={styles.value}>
+                                {usuario.documentoTipo || 'Sin datos'} - {usuario.paisDocumento || ''}
+                            </Text>
+                            <Text style={styles.subvalue}>
+                                {usuario.nroDocumento || ''}
+                            </Text>
+                        </View>
+
+                        {/* DIRECCIÓN */}
+                        <View style={styles.block}>
+                            <Text style={styles.label}>Dirección</Text>
+                            <Text style={styles.value}>{usuario.direccion?.paisDireccion}</Text>
+                            <Text style={styles.subvalue}>{usuario.direccion?.localidad}</Text>
+                            <Text style={styles.subvalue}>
+                                {usuario.direccion?.calle} {usuario.direccion?.nroDireccion ?? ''}
+                            </Text>
+                            <Text style={styles.subvalue}>
+                                CP: {usuario.direccion?.codigoPostal}
+                            </Text>
+                        </View>
+
                     </View>
 
-                    {/* ROL */}
-                    <View style={styles.block}>
-                        <Text style={styles.label}>Rol</Text>
-                        <Text style={styles.value}>{usuario.rol}</Text>
-                    </View>
-
-                    {/* TELÉFONOS */}
-                    <View style={styles.block}>
-                        <Text style={styles.label}>Teléfonos</Text>
-                        <Text style={styles.value}>
-                            {usuario.telefonos || 'Sin teléfono'}
+                    <TouchableOpacity
+                        style={styles.botonCerrarSesion}
+                        onPress={async () => {
+                            await logout();
+                            router.replace('/');
+                        }}
+                    >
+                        <FontAwesome name="sign-out" size={18} color="#FFFFFF" />
+                        <Text style={styles.textoCerrarSesion}>
+                            Cerrar sesión
                         </Text>
-                    </View>
-
-                    {/* DOCUMENTO */}
-                    <View style={styles.block}>
-                        <Text style={styles.label}>Documento</Text>
-                        <Text style={styles.value}>
-                            {usuario.documentoTipo || 'Sin datos'} - {usuario.paisDocumento || ''}
-                        </Text>
-                        <Text style={styles.subvalue}>
-                            {usuario.nroDocumento || ''}
-                        </Text>
-                    </View>
-
-                    {/* DIRECCIÓN */}
-                    <View style={styles.block}>
-                        <Text style={styles.label}>Dirección</Text>
-                        <Text style={styles.value}>{usuario.direccion?.paisDireccion}</Text>
-                        <Text style={styles.subvalue}>{usuario.direccion?.localidad}</Text>
-                        <Text style={styles.subvalue}>
-                            {usuario.direccion?.calle} {usuario.direccion?.nroDireccion ?? ''}
-                        </Text>
-                        <Text style={styles.subvalue}>
-                            CP: {usuario.direccion?.codigoPostal}
-                        </Text>
-                    </View>
-
+                    </TouchableOpacity>
                 </View>
-
-                <TouchableOpacity
-                    style={styles.botonCerrarSesion}
-                    onPress={async () => {
-                        await logout();
-                        router.replace('/');
-                    }}
-                >
-                    <FontAwesome name="sign-out" size={18} color="#FFFFFF" />
-                    <Text style={styles.textoCerrarSesion}>
-                        Cerrar sesión
-                    </Text>
-                </TouchableOpacity>
             </View>
-
-        </View>
+        </Screen>
     );
-}const styles = StyleSheet.create({
+} const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#051F3B',

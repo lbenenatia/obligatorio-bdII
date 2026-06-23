@@ -3,6 +3,7 @@ import { Entrada } from "@/types/entrada";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useState } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Screen from "../../screen";
 
 // @react-native-community/datetimepicker no tiene implementacion en web (renderiza null
 // y solo tira un console.warn). En web usamos un <input type="date"> nativo del navegador.
@@ -36,7 +37,7 @@ export default function Historial() {
     const [entradas, setEntradas] = useState<Entrada[]>([]);
 
     useEffect(() => {
-        EntradaService.misValidadas().then(setEntradas).catch(() => {});
+        EntradaService.misValidadas().then(setEntradas).catch(() => { });
     }, []);
 
     const formatearFecha = (date: Date) => {
@@ -49,90 +50,93 @@ export default function Historial() {
     });
 
     return (
-        <View style={styles.container}>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
 
-            <Text style={styles.title}>
-                Historial de Validaciones
-            </Text>
+                <Text style={styles.title}>
+                    Historial de Validaciones
+                </Text>
 
-            <View style={styles.panel}>
+                <View style={styles.panel}>
 
-                {/* FILTRO */}
-                {Platform.OS === "web" ? (
-                    React.createElement("input", {
-                        type: "date",
-                        value: fechaALocalISO(fecha),
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                            if (!e.target.value) return;
-                            const [anio, mes, dia] = e.target.value.split("-").map(Number);
-                            setFecha(new Date(anio, mes - 1, dia));
-                        },
-                        style: estiloInputFechaWeb,
-                    })
-                ) : (
-                    <TouchableOpacity
-                        style={styles.filtro}
-                        onPress={() => setMostrarPicker(true)}
-                    >
-                        <Text style={styles.filtroTexto}>
-                            {formatearFecha(fecha)}
-                        </Text>
-                    </TouchableOpacity>
-                )}
-
-                {/* PICKER (no aplica en web, ver arriba) */}
-                {Platform.OS !== "web" && mostrarPicker && (
-                    <DateTimePicker
-                        value={fecha}
-                        mode="date"
-                        display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                        onChange={(event, selectedDate) => {
-                            setMostrarPicker(false);
-
-                            if (event.type === "set" && selectedDate) {
-                                setFecha(selectedDate);
-                            }
-                        }}
-                    />
-                )}
-
-                {/* LISTA DE ENTRADAS */}
-                <View style={styles.lista}>
-                    {entradasDelDia.length === 0 ? (
-                        <Text style={styles.itemTexto}>
-                            No hay validaciones en esta fecha.
-                        </Text>
+                    {/* FILTRO */}
+                    {Platform.OS === "web" ? (
+                        React.createElement("input", {
+                            type: "date",
+                            value: fechaALocalISO(fecha),
+                            onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                                if (!e.target.value) return;
+                                const [anio, mes, dia] = e.target.value.split("-").map(Number);
+                                setFecha(new Date(anio, mes - 1, dia));
+                            },
+                            style: estiloInputFechaWeb,
+                        })
                     ) : (
-                        entradasDelDia.map((entrada, index) => (
-                            <View key={entrada.id}>
-                                <View style={styles.item}>
-                                    <View style={styles.itemInfo}>
-                                        <Text style={styles.itemId}>
-                                            Entrada #{entrada.id}
-                                        </Text>
-
-                                        <Text style={styles.itemTexto}>
-                                            {entrada.equipoLocal} vs {entrada.equipoVisitante} • Sector {entrada.sectorCodigo}, Asiento {entrada.numeroAsiento}
-                                        </Text>
-                                    </View>
-
-                                    <View style={[styles.badge, styles.valida]}>
-                                        <Text style={[styles.badgeTexto, styles.textoValida]}>
-                                            Validada
-                                        </Text>
-                                    </View>
-                                </View>
-
-                                {index < entradasDelDia.length - 1 && (
-                                    <View style={styles.divisor} />
-                                )}
-                            </View>
-                        ))
+                        <TouchableOpacity
+                            style={styles.filtro}
+                            onPress={() => setMostrarPicker(true)}
+                        >
+                            <Text style={styles.filtroTexto}>
+                                {formatearFecha(fecha)}
+                            </Text>
+                        </TouchableOpacity>
                     )}
-                </View>
 
+                    {/* PICKER (no aplica en web, ver arriba) */}
+                    {Platform.OS !== "web" && mostrarPicker && (
+                        <DateTimePicker
+                            value={fecha}
+                            mode="date"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                            onChange={(event, selectedDate) => {
+                                setMostrarPicker(false);
+
+                                if (event.type === "set" && selectedDate) {
+                                    setFecha(selectedDate);
+                                }
+                            }}
+                        />
+                    )}
+
+                    {/* LISTA DE ENTRADAS */}
+                    <View style={styles.lista}>
+                        {entradasDelDia.length === 0 ? (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>
+                                    No hay validaciones en esta fecha.
+                                </Text>
+                            </View>
+                        ) : (
+                            entradasDelDia.map((entrada, index) => (
+                                <View key={entrada.id}>
+                                    <View style={styles.item}>
+                                        <View style={styles.itemInfo}>
+                                            <Text style={styles.itemId}>
+                                                Entrada #{entrada.id}
+                                            </Text>
+
+                                            <Text style={styles.itemTexto}>
+                                                {entrada.equipoLocal} vs {entrada.equipoVisitante} • Sector {entrada.sectorCodigo}, Asiento {entrada.numeroAsiento}
+                                            </Text>
+                                        </View>
+
+                                        <View style={[styles.badge, styles.valida]}>
+                                            <Text style={[styles.badgeTexto, styles.textoValida]}>
+                                                Validada
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    {index < entradasDelDia.length - 1 && (
+                                        <View style={styles.divisor} />
+                                    )}
+                                </View>
+                            ))
+                        )}
+                    </View>
+                </View>
             </View>
-        </View>
+        </Screen>
     );
 }
 const styles = StyleSheet.create({
@@ -201,7 +205,19 @@ const styles = StyleSheet.create({
         color: '#051F3B',
         marginBottom: 2,
     },
+    emptyContainer: {
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 30,
+    },
 
+    emptyText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#6B7280',
+        textAlign: 'center',
+    },
     itemTexto: {
         fontSize: 13,
         fontWeight: '600',

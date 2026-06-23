@@ -4,74 +4,73 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from '../../screen';
 
 export default function Eventos() {
     const router = useRouter();
     const [eventos, setEventos] = useState<Evento[]>([]);
 
     useEffect(() => {
-        EventoService.listar().then(setEventos).catch(() => {});
+        EventoService.listar().then(setEventos).catch(() => { });
     }, []);
 
     return (
-        <View style={styles.container}>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
+                <Text style={styles.title}>Eventos</Text>
+                <View style={styles.headerActions}>
+                    <View />
+                    <TouchableOpacity style={styles.addButton}
+                        onPress={() => router.push(`/administrador/nuevoEvento`)}>
+                        <Ionicons name="add" size={22} color="#FFF" />
+                        <Text style={styles.addButtonText}>Nuevo Evento</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <Text style={styles.title}>Eventos</Text>
+                <View style={styles.contentContainer}>
+                    {eventos.length === 0 && (
+                        <Text style={styles.placeholderText}>
+                            No hay eventos creados.
+                        </Text>
+                    )}
+                    {eventos.map((evento) => (
+                        <View key={evento.id} style={styles.eventRow}>
 
-            <View style={styles.headerActions}>
-                <View />
-                <TouchableOpacity style={styles.addButton}
-                    onPress={() => router.push(`/administrador/nuevoEvento`)}>
-                    <Ionicons name="add" size={22} color="#FFF" />
-                    <Text style={styles.addButtonText}>Nuevo Evento</Text>
-                </TouchableOpacity>
-            </View>
+                            <View style={styles.eventInfo}>
+                                <Text style={styles.eventTitle}>
+                                    {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
+                                </Text>
 
-            <View style={styles.contentContainer}>
-                {eventos.length === 0 && (
-                    <Text style={styles.placeholderText}>
-                        No hay eventos creados.
-                    </Text>
-                )}
-                {eventos.map((evento) => (
-                    <View key={evento.id} style={styles.eventRow}>
+                                <Text style={styles.eventDetail}>
+                                    {evento.fechaEvento} - {evento.horaEvento}
+                                </Text>
 
-                        <View style={styles.eventInfo}>
-                            <Text style={styles.eventTitle}>
-                                {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
-                            </Text>
+                                <Text style={styles.eventDetail}>
+                                    {evento.estadio.nombreEstadio}
+                                </Text>
+                            </View>
 
-                            <Text style={styles.eventDetail}>
-                                {evento.fechaEvento} - {evento.horaEvento}
-                            </Text>
+                            <TouchableOpacity style={styles.arrowButton}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/administrador/evento',
+                                        params: {
+                                            id: evento.id,
+                                        },
+                                    })
+                                }>
+                                <Ionicons
+                                    name="chevron-forward"
+                                    size={28}
+                                    color="#6B7280"
+                                />
+                            </TouchableOpacity>
 
-                            <Text style={styles.eventDetail}>
-                                {evento.estadio.nombreEstadio}
-                            </Text>
                         </View>
-
-                        <TouchableOpacity style={styles.arrowButton}
-                            onPress={() =>
-                                router.push({
-                                    pathname: '/administrador/evento',
-                                    params: {
-                                        id: evento.id,
-                                    },
-                                })
-                            }>
-                            <Ionicons
-                                name="chevron-forward"
-                                size={28}
-                                color="#6B7280"
-                            />
-                        </TouchableOpacity>
-
-                    </View>
-                ))}
-
-            </View>
-
-        </View >
+                    ))}
+                </View>
+            </View >
+        </Screen>
     );
 }
 

@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -10,6 +9,7 @@ import {
 
 import { EntradaService } from '@/services/EntradaService';
 import { Entrada } from '@/types/entrada';
+import Screen from '../screen';
 
 export default function MisEntradas() {
     const [tab, setTab] = useState<'proximos' | 'historial'>('proximos');
@@ -63,7 +63,7 @@ export default function MisEntradas() {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <Screen backgroundColor="#051F3B">
 
                 {tab === 'proximos' &&
                     (entradasActivas.length === 0 ? (
@@ -144,7 +144,7 @@ export default function MisEntradas() {
                             </TouchableOpacity>
                         ))
                     ))}
-            </ScrollView>
+            </Screen>
         </View>
     );
 }

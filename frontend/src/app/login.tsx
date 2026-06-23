@@ -3,13 +3,20 @@ import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+    Dimensions,
     Image,
+    KeyboardAvoidingView,
+    Platform,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Screen from './screen';
+
+const { height } = Dimensions.get('window');
 
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
@@ -49,78 +56,94 @@ export default function LoginScreen() {
         }
     };
     return (
-        <View style={styles.container}>
-            <Image
-                source={require('../../assets/images/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-            />
-
-            <View style={styles.headerContainer}>
-                <Text style={styles.title}>Iniciar sesión</Text>
-                <Text style={styles.subtitle}>
-                    Ingresá tus datos para continuar
-                </Text>
-            </View>
-
-            <View style={styles.formContainer}>
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Correo electrónico</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="example@correo.com"
-                        placeholderTextColor="#B3B3B3"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        value={email}
-                        onChangeText={setEmail}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Contraseña</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="••••••••"
-                        placeholderTextColor="#B3B3B3"
-                        secureTextEntry
-                        value={password}
-                        onChangeText={setPassword}
-                    />
-                </View>
-            </View>
-
-            <View style={styles.bottomContainer}>
-                <Text style={styles.topText}>¿Olvidaste tu contraseña?</Text>
-
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={iniciarSesion}
+        <Screen>
+            <SafeAreaView style={styles.safe}>
+                <KeyboardAvoidingView
+                    style={styles.flex}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
-                    <Text style={styles.buttonText}>
-                        Iniciar sesión
-                    </Text>
-                </TouchableOpacity>
+                    <Image
+                        source={require('../../assets/images/logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
 
-                <Text style={styles.bottomText}>
-                    ¿No tenés cuenta?{' '}
-                    <Text
-                        style={styles.registerLink}
-                        onPress={() => router.push('/register')}
-                    >
-                        Registrarse
-                    </Text>
-                </Text>
-            </View>
-        </View>
+                    <View style={styles.headerContainer}>
+                        <Text style={styles.title}>Iniciar sesión</Text>
+                        <Text style={styles.subtitle}>
+                            Ingresá tus datos para continuar
+                        </Text>
+                    </View>
 
+                    <View style={styles.formContainer}>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Correo electrónico</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="example@correo.com"
+                                placeholderTextColor="#B3B3B3"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                                value={email}
+                                onChangeText={setEmail}
+                            />
+                        </View>
+
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Contraseña</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="••••••••"
+                                placeholderTextColor="#B3B3B3"
+                                secureTextEntry
+                                value={password}
+                                onChangeText={setPassword}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.bottomContainer}>
+                        <Text style={styles.topText}>¿Olvidaste tu contraseña?</Text>
+
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={iniciarSesion}
+                        >
+                            <Text style={styles.buttonText}>
+                                Iniciar sesión
+                            </Text>
+                        </TouchableOpacity>
+
+                        <Text style={styles.bottomText}>
+                            ¿No tenés cuenta?{' '}
+                            <Text
+                                style={styles.registerLink}
+                                onPress={() => router.push('/register')}
+                            >
+                                Registrarse
+                            </Text>
+                        </Text>
+                    </View>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
+        </Screen>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        alignItems: 'center',
+    },
+
+    safe: {
+        flex: 1,
+        width: '100%',
         backgroundColor: '#FFFFFF',
+    },
+
+    flex: {
+        flex: 1,
         alignItems: 'center',
     },
 
@@ -150,7 +173,7 @@ const styles = StyleSheet.create({
 
     formContainer: {
         width: '85%',
-        marginTop: 50, 
+        marginTop: 50,
     },
 
     inputGroup: {
@@ -177,7 +200,7 @@ const styles = StyleSheet.create({
     bottomContainer: {
         width: '85%',
         alignItems: 'center',
-        marginTop: 15, 
+        marginTop: 15,
     },
 
     topText: {
@@ -192,7 +215,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1545F4',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 32, 
+        marginTop: 32,
     },
 
     buttonText: {

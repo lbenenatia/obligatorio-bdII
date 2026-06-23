@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Screen from '../../screen';
 
 export default function Estadios() {
     const router = useRouter();
@@ -15,8 +16,8 @@ export default function Estadios() {
     const [eventos, setEventos] = useState<Evento[]>([]);
 
     const cargar = () => {
-        EstadioService.listar().then(setEstadios).catch(() => {});
-        EventoService.listar().then(setEventos).catch(() => {});
+        EstadioService.listar().then(setEstadios).catch(() => { });
+        EventoService.listar().then(setEventos).catch(() => { });
     };
 
     useEffect(() => {
@@ -56,113 +57,115 @@ export default function Estadios() {
         estadio.nombreEstadio.toLowerCase().includes(search.toLowerCase())
     );
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.title}>Estadios</Text>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>Estadios</Text>
 
-                <TouchableOpacity style={styles.addButton}
-                    onPress={() => router.push('/administrador/crearEstadio')}>
-                    <Ionicons name="add" size={28} color="#FFF" />
-                </TouchableOpacity>
-            </View>
+                    <TouchableOpacity style={styles.addButton}
+                        onPress={() => router.push('/administrador/crearEstadio')}>
+                        <Ionicons name="add" size={28} color="#FFF" />
+                    </TouchableOpacity>
+                </View>
 
-            {/* Buscador */}
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#6B7280" />
-                <TextInput
-                    placeholder="Buscar estadio..."
-                    placeholderTextColor="#6B7280"
-                    style={styles.searchInput}
-                    value={search}
-                    onChangeText={setSearch}
-                />
-            </View>
+                {/* Buscador */}
+                <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={20} color="#6B7280" />
+                    <TextInput
+                        placeholder="Buscar estadio..."
+                        placeholderTextColor="#6B7280"
+                        style={styles.searchInput}
+                        value={search}
+                        onChangeText={setSearch}
+                    />
+                </View>
 
-            {/* Lista */}
-            {estadiosFiltrados.map((estadio) => {
+                {/* Lista */}
+                {estadiosFiltrados.map((estadio) => {
 
-                const tieneEventosAsociados = eventos.some(
-                    e => e.estadio.id === estadio.id
-                );
+                    const tieneEventosAsociados = eventos.some(
+                        e => e.estadio.id === estadio.id
+                    );
 
-                const capacidadTotal = estadio.sectores.reduce(
-                    (acc, sector) => acc + sector.capMax, 0
-                );
+                    const capacidadTotal = estadio.sectores.reduce(
+                        (acc, sector) => acc + sector.capMax, 0
+                    );
 
-                return (
-                    <View key={estadio.id} style={styles.card}>
-                        {/* IMAGEN A LA IZQUIERDA */}
-                        <View style={styles.cardImageContainer}>
-                            <Image
-                                source={require('../../../../assets/images/estadio.png')}
-                                style={styles.cardImage}
-                                resizeMode="cover"
-                            />
-                        </View>
-
-                        {/* TEXTO A LA DERECHA */}
-                        <View style={styles.cardContent}>
-                            <Text style={styles.nombre}>
-                                {estadio.nombreEstadio}
-                            </Text>
-
-                            <Text style={styles.info}>
-                                {estadio.ubicacion}
-                            </Text>
-
-                            <Text style={styles.info}>
-                                {capacidadTotal.toLocaleString()}
-                            </Text>
-                        </View>
-
-                        {/* BOTÓN EDITAR */}
-                        <View style={styles.botones}>
-                            <TouchableOpacity
-                                style={[
-                                    styles.editButton,
-                                    tieneEventosAsociados &&
-                                    styles.buttonDisabled,
-                                ]}
-                                disabled={tieneEventosAsociados}
-                                onPress={() =>
-                                    router.push({
-                                        pathname: '/administrador/editarEstadio',
-                                        params: {
-                                            id: estadio.id,
-                                        },
-                                    })
-                                }
-                            >
-                                <Ionicons
-                                    name="create-outline"
-                                    size={22}
-                                    color="#FFF"
+                    return (
+                        <View key={estadio.id} style={styles.card}>
+                            {/* IMAGEN A LA IZQUIERDA */}
+                            <View style={styles.cardImageContainer}>
+                                <Image
+                                    source={require('../../../../assets/images/estadio.png')}
+                                    style={styles.cardImage}
+                                    resizeMode="cover"
                                 />
-                            </TouchableOpacity>
+                            </View>
 
-                            <TouchableOpacity
-                                style={[
-                                    styles.deleteButton,
-                                    tieneEventosAsociados &&
-                                    styles.buttonDisabled,
-                                ]}
-                                disabled={tieneEventosAsociados}
-                                onPress={() =>
-                                    borrarEstadio(estadio.id)
-                                }
-                            >
-                                <Ionicons
-                                    name="trash-outline"
-                                    size={22}
-                                    color="#FFF"
-                                />
-                            </TouchableOpacity>
+                            {/* TEXTO A LA DERECHA */}
+                            <View style={styles.cardContent}>
+                                <Text style={styles.nombre}>
+                                    {estadio.nombreEstadio}
+                                </Text>
+
+                                <Text style={styles.info}>
+                                    {estadio.ubicacion}
+                                </Text>
+
+                                <Text style={styles.info}>
+                                    {capacidadTotal.toLocaleString()}
+                                </Text>
+                            </View>
+
+                            {/* BOTÓN EDITAR */}
+                            <View style={styles.botones}>
+                                <TouchableOpacity
+                                    style={[
+                                        styles.editButton,
+                                        tieneEventosAsociados &&
+                                        styles.buttonDisabled,
+                                    ]}
+                                    disabled={tieneEventosAsociados}
+                                    onPress={() =>
+                                        router.push({
+                                            pathname: '/administrador/editarEstadio',
+                                            params: {
+                                                id: estadio.id,
+                                            },
+                                        })
+                                    }
+                                >
+                                    <Ionicons
+                                        name="create-outline"
+                                        size={22}
+                                        color="#FFF"
+                                    />
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[
+                                        styles.deleteButton,
+                                        tieneEventosAsociados &&
+                                        styles.buttonDisabled,
+                                    ]}
+                                    disabled={tieneEventosAsociados}
+                                    onPress={() =>
+                                        borrarEstadio(estadio.id)
+                                    }
+                                >
+                                    <Ionicons
+                                        name="trash-outline"
+                                        size={22}
+                                        color="#FFF"
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                );
-            })}
-        </View>
+                    );
+                })}
+            </View>
+        </Screen>
     );
 }
 

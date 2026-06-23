@@ -2,7 +2,8 @@ import { QRService } from '@/services/QRService';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useIsFocused, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import Screen from '../../screen';
 
 export default function EscanearEntrada() {
     const [permission, requestPermission] = useCameraPermissions();
@@ -61,26 +62,28 @@ export default function EscanearEntrada() {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.titulo}>
-                Escanear Entrada
-            </Text>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
+                <Text style={styles.titulo}>
+                    Escanear Entrada
+                </Text>
 
-            <Text style={styles.subtitulo}>
-                Alineá el código QR dentro del recuadro para validar la entrada.
-            </Text>
+                <Text style={styles.subtitulo}>
+                    Alineá el código QR dentro del recuadro para validar la entrada.
+                </Text>
 
-            <View style={styles.cameraContainer}>
-                {enFoco && (
-                    <CameraView
-                        style={styles.camera}
-                        facing="back"
-                        active={enFoco}
-                        onBarcodeScanned={({ data }) => procesarCodigo(data)}
-                    />
-                )}
+                <View style={styles.cameraContainer}>
+                    {enFoco && (
+                        <CameraView
+                            style={styles.camera}
+                            facing="back"
+                            active={enFoco}
+                            onBarcodeScanned={({ data }) => procesarCodigo(data)}
+                        />
+                    )}
+                </View>
             </View>
-        </View>
+        </Screen>
     );
 }
 

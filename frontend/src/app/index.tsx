@@ -1,6 +1,7 @@
 import {
   Image,
   ImageBackground,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,39 +18,45 @@ export default function HomeScreen() {
       style={styles.background}
       resizeMode="cover"
     >
-      <View style={styles.content}>
-        <Image
-          source={require('../../assets/images/logo_blanco.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.content}>
+          <Image
+            source={require('../../assets/images/logo_blanco.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-        <Text style={styles.subtitle}>
-          Viví el mundial 2026
-        </Text>
+          <Text style={styles.subtitle}>
+            Viví el mundial 2026
+          </Text>
 
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => router.push('/login')}
-          >
-            <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={() => router.push('/login')}
+            >
+              <Text style={styles.loginButtonText}>Iniciar sesión</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={() => router.push('/register')}
-          >
-            <Text style={styles.registerButtonText}>Crear cuenta</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.registerButton}
+              onPress={() => router.push('/register')}
+            >
+              <Text style={styles.registerButtonText}>Crear cuenta</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   background: {
+    flex: 1,
+  },
+
+  safe: {
     flex: 1,
   },
 
@@ -66,7 +73,7 @@ const styles = StyleSheet.create({
   },
 
   subtitle: {
-    marginTop: 83, 
+    marginTop: 83,
     fontSize: 30,
     fontWeight: 'bold',
     color: '#FFFFFF',

@@ -9,6 +9,7 @@ import {
     TouchableOpacity, View
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import Screen from './screen';
 
 export default function Transfer() {
     const [seconds, setSeconds] = useState(30);
@@ -79,164 +80,166 @@ export default function Transfer() {
         }
     };
     return (
-        <View style={styles.container}>
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
-                <Text style={styles.backText}>‹</Text>
-            </TouchableOpacity>
-            <Image
-                source={require('../../assets/images/logo_blanco.png')}
-                style={styles.logo}
-                resizeMode="contain"
-            />
-
-            <View style={styles.mainCard}>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
                 <Image
-                    source={require('../../assets/images/logo.png')}
-                    style={styles.cardLogo}
+                    source={require('../../assets/images/logo_blanco.png')}
+                    style={styles.logo}
                     resizeMode="contain"
                 />
 
-                <View style={styles.contentContainer}>
-                    <Text style={styles.title}>
-                        {match}
-                    </Text>
+                <View style={styles.mainCard}>
+                    <Image
+                        source={require('../../assets/images/logo.png')}
+                        style={styles.cardLogo}
+                        resizeMode="contain"
+                    />
 
-                    <Text style={styles.subtitle}>
-                        {date} - {time} • Sector {sector}, Entradas: {cantidad}
-                    </Text>
-
-                    <View style={styles.divider} />
-
-                    <View style={styles.qrContainer}>
-                        {qrValue && (
-                            <QRCode
-                                value={qrValue}
-                                size={99}
-                            />
-                        )}
-                    </View>
-
-                    <View style={styles.timerContainer}>
-                        <Text style={styles.refreshIcon}>↻</Text>
-
-                        <Text style={styles.timerText}>
-                            El código QR se actualiza en:{' '}
-                            <Text style={styles.timerBold}>
-                                00:{seconds < 10 ? `0${seconds}` : seconds}
-                            </Text>
-                        </Text>
-                    </View>
-                </View>
-            </View>
-            <View style={styles.bottomContainer}>
-                <ScrollView
-                    style={{ width: '100%' }}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{
-                        alignItems: 'center',
-                        paddingBottom: 30, 
-                    }}
-                >
-                    <View style={styles.headerTextContainer}>
-                        <Text style={styles.mainTitle}>
-                            Transferir entrada
+                    <View style={styles.contentContainer}>
+                        <Text style={styles.title}>
+                            {match}
                         </Text>
 
-                        <Text style={styles.subtitle2}>
-                            {match}{sector ? `, Sector ${sector}` : ''}
+                        <Text style={styles.subtitle}>
+                            {date} - {time} • Sector {sector}, Entradas: {cantidad}
                         </Text>
 
-                        <Text style={styles.description}>
-                            Buscar un usuario por email
-                        </Text>
-                    </View>
+                        <View style={styles.divider} />
 
-                    {/* Buscador */}
-                    <View style={styles.searchContainer}>
-                        <Text style={styles.searchIcon}>⌕</Text>
-
-                        <TextInput
-                            placeholder="ejemplo@correo.com"
-                            placeholderTextColor="#999"
-                            style={styles.searchInput}
-                            value={query}
-                            editable={!selectedUser}
-                            onChangeText={(text) => {
-                                setQuery(text);
-                                setShowDropdown(true);
-                            }}
-                        />
-                    </View>
-
-                    {showDropdown && query.length > 0 && !selectedUser && (
-                        <View style={styles.dropdown}>
-                            {resultados.length === 0 ? (
-                                <Text style={styles.noResults}>No se encontraron usuarios</Text>
-                            ) : (
-                                resultados.map(user => (
-                                    <TouchableOpacity
-                                        key={user.id}
-                                        style={styles.dropdownItem}
-                                        onPress={() => {
-                                            setSelectedUser(user);
-                                            setQuery('');
-                                            setShowDropdown(false);
-                                        }}
-                                    >
-                                        <Text style={styles.dropdownText}>
-                                            {user.nombre} {user.apellido} ({user.email})
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))
+                        <View style={styles.qrContainer}>
+                            {qrValue && (
+                                <QRCode
+                                    value={qrValue}
+                                    size={99}
+                                />
                             )}
                         </View>
-                    )}
-                    {selectedUser && (
-                        <View style={styles.selectedBox}>
-                            <Text style={styles.selectedText}>
-                                Usuario seleccionado:
+
+                        <View style={styles.timerContainer}>
+                            <Text style={styles.refreshIcon}>↻</Text>
+
+                            <Text style={styles.timerText}>
+                                El código QR se actualiza en:{' '}
+                                <Text style={styles.timerBold}>
+                                    00:{seconds < 10 ? `0${seconds}` : seconds}
+                                </Text>
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.bottomContainer}>
+                    <ScrollView
+                        style={{ width: '100%' }}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{
+                            alignItems: 'center',
+                            paddingBottom: 30,
+                        }}
+                    >
+                        <View style={styles.headerTextContainer}>
+                            <Text style={styles.mainTitle}>
+                                Transferir entrada
                             </Text>
 
-                            <Text style={styles.selectedName}>
-                                {selectedUser.nombre} {selectedUser.apellido}
+                            <Text style={styles.subtitle2}>
+                                {match}{sector ? `, Sector ${sector}` : ''}
                             </Text>
 
-                            <TouchableOpacity
-                                onPress={() => {
-                                    setSelectedUser(null);
-                                    setQuery('');
-                                    setShowDropdown(false);
+                            <Text style={styles.description}>
+                                Buscar un usuario por email
+                            </Text>
+                        </View>
+
+                        {/* Buscador */}
+                        <View style={styles.searchContainer}>
+                            <Text style={styles.searchIcon}>⌕</Text>
+
+                            <TextInput
+                                placeholder="ejemplo@correo.com"
+                                placeholderTextColor="#999"
+                                style={styles.searchInput}
+                                value={query}
+                                editable={!selectedUser}
+                                onChangeText={(text) => {
+                                    setQuery(text);
+                                    setShowDropdown(true);
                                 }}
+                            />
+                        </View>
+
+                        {showDropdown && query.length > 0 && !selectedUser && (
+                            <View style={styles.dropdown}>
+                                {resultados.length === 0 ? (
+                                    <Text style={styles.noResults}>No se encontraron usuarios</Text>
+                                ) : (
+                                    resultados.map(user => (
+                                        <TouchableOpacity
+                                            key={user.id}
+                                            style={styles.dropdownItem}
+                                            onPress={() => {
+                                                setSelectedUser(user);
+                                                setQuery('');
+                                                setShowDropdown(false);
+                                            }}
+                                        >
+                                            <Text style={styles.dropdownText}>
+                                                {user.nombre} {user.apellido} ({user.email})
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))
+                                )}
+                            </View>
+                        )}
+                        {selectedUser && (
+                            <View style={styles.selectedBox}>
+                                <Text style={styles.selectedText}>
+                                    Usuario seleccionado:
+                                </Text>
+
+                                <Text style={styles.selectedName}>
+                                    {selectedUser.nombre} {selectedUser.apellido}
+                                </Text>
+
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setSelectedUser(null);
+                                        setQuery('');
+                                        setShowDropdown(false);
+                                    }}
+                                >
+                                    <Text style={styles.remove}>✕ Cambiar usuario</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
+                        <View style={styles.footerButtons}>
+                            <TouchableOpacity
+                                style={styles.primaryButton}
+                                onPress={confirmarTransferencia}
+                                disabled={!selectedUser || enviando}
                             >
-                                <Text style={styles.remove}>✕ Cambiar usuario</Text>
+                                <Text style={styles.primaryButtonText}>
+                                    {enviando ? 'Transfiriendo...' : 'Confirmar transferencia'}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.secondaryButton}
+                                onPress={() => router.push('/home')}>
+                                <Text style={styles.secondaryButtonText}>
+                                    Cancelar
+                                </Text>
                             </TouchableOpacity>
                         </View>
-                    )}
-
-                    <View style={styles.footerButtons}>
-                        <TouchableOpacity
-                            style={styles.primaryButton}
-                            onPress={confirmarTransferencia}
-                            disabled={!selectedUser || enviando}
-                        >
-                            <Text style={styles.primaryButtonText}>
-                                {enviando ? 'Transfiriendo...' : 'Confirmar transferencia'}
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.secondaryButton}
-                            onPress={() => router.push('/home')}>
-                            <Text style={styles.secondaryButtonText}>
-                                Cancelar
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </ScrollView>
+                    </ScrollView>
+                </View>
             </View>
-        </View>
+        </Screen>
     );
 }
 
@@ -269,7 +272,7 @@ const styles = StyleSheet.create({
     logo: {
         width: '50%',
         height: 100,
-        marginTop: 80, 
+        marginTop: 80,
     },
 
     mainCard: {
@@ -354,7 +357,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#FFFFFF',
 
-        marginTop: -25, 
+        marginTop: -25,
 
         paddingVertical: 20,
         alignItems: 'center',
@@ -366,7 +369,7 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: -4, 
+            height: -4,
         },
         shadowOpacity: 0.12,
         shadowRadius: 8,

@@ -7,6 +7,7 @@ import { CompraService } from '@/services/CompraService';
 import { EventoService } from '@/services/EventoService';
 import { TransferenciaService } from '@/services/TransferenciaService';
 import { UsuarioService } from '@/services/UsuarioService';
+import Screen from '../../screen';
 
 export default function Perfil() {
     const { usuario } = useAuth();
@@ -19,113 +20,114 @@ export default function Perfil() {
     useEffect(() => {
         EventoService.listar()
             .then(eventos => setEventosActivos(eventos.length))
-            .catch(() => {});
+            .catch(() => { });
 
         CompraService.listarTodas()
             .then(compras =>
                 setEntradasVendidas(compras.reduce((acc, c) => acc + c.cantEntradas, 0))
             )
-            .catch(() => {});
+            .catch(() => { });
 
         UsuarioService.contar()
             .then(setUsuariosRegistrados)
-            .catch(() => {});
+            .catch(() => { });
 
         TransferenciaService.listarTodas()
             .then(transferencias => setTransferencias(transferencias.length))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     return (
-        <View style={styles.container}>
-            <Image
-                source={require('../../../../assets/images/logo_blanco.png')}
-                style={styles.logo}
-                resizeMode="contain"
-            />
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
+                <Image
+                    source={require('../../../../assets/images/logo_blanco.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
 
-            <View style={styles.textContainer}>
-                <Text style={styles.title}>
-                    👋 ¡Hola {usuario?.nombre || 'Admin'}!
-                </Text>
+                <View style={styles.textContainer}>
+                    <Text style={styles.title}>
+                        👋 ¡Hola {usuario?.nombre || 'Admin'}!
+                    </Text>
 
-                <Text style={styles.subtitle}>
-                    {usuario?.rol || 'ADMINISTRADOR'}
-                </Text>
+                    <Text style={styles.subtitle}>
+                        {usuario?.rol || 'ADMINISTRADOR'}
+                    </Text>
+                </View>
+
+                <View style={styles.grid}>
+
+                    {/* EVENTOS */}
+                    <View style={styles.card}>
+                        <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
+                            <MaterialCommunityIcons
+                                name="calendar-check"
+                                size={28}
+                                color="#16A34A"
+                            />
+                        </View>
+
+                        <Text style={styles.cardTitle}>Eventos</Text>
+                        <Text style={styles.cardNumber}>
+                            {eventosActivos}
+                        </Text>
+                    </View>
+
+                    {/* ENTRADAS */}
+                    <View style={styles.card}>
+                        <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
+                            <Ionicons
+                                name="ticket-outline"
+                                size={28}
+                                color="#2563EB"
+                            />
+                        </View>
+
+                        <Text style={styles.cardTitle}>Entradas Vendidas</Text>
+                        <Text style={styles.cardNumber}>
+                            {entradasVendidas}
+                        </Text>
+                    </View>
+
+                    {/* USUARIOS */}
+                    <View style={styles.card}>
+                        <View style={[styles.iconCircle, { backgroundColor: '#EDE9FE' }]}>
+                            <Ionicons
+                                name="people-outline"
+                                size={28}
+                                color="#7C3AED"
+                            />
+                        </View>
+
+                        <Text style={styles.cardTitle}>
+                            Usuarios
+                        </Text>
+                        <Text style={styles.cardNumber}>
+                            {usuariosRegistrados}
+                        </Text>
+                    </View>
+
+                    {/* TRANSFERENCIAS */}
+                    <View style={styles.card}>
+                        <View style={[styles.iconCircle, { backgroundColor: '#FFEDD5' }]}>
+                            <Ionicons
+                                name="swap-horizontal"
+                                size={28}
+                                color="#EA580C"
+                            />
+                        </View>
+
+                        <Text style={styles.cardTitle}>
+                            Transferencias
+                        </Text>
+                        <Text style={styles.cardNumber}>
+                            {transferencias}
+                        </Text>
+                    </View>
+                </View>
             </View>
-
-            <View style={styles.grid}>
-
-                {/* EVENTOS */}
-                <View style={styles.card}>
-                    <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
-                        <MaterialCommunityIcons
-                            name="calendar-check"
-                            size={28}
-                            color="#16A34A"
-                        />
-                    </View>
-
-                    <Text style={styles.cardTitle}>Eventos</Text>
-                    <Text style={styles.cardNumber}>
-                        {eventosActivos}
-                    </Text>
-                </View>
-
-                {/* ENTRADAS */}
-                <View style={styles.card}>
-                    <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
-                        <Ionicons
-                            name="ticket-outline"
-                            size={28}
-                            color="#2563EB"
-                        />
-                    </View>
-
-                    <Text style={styles.cardTitle}>Entradas Vendidas</Text>
-                    <Text style={styles.cardNumber}>
-                        {entradasVendidas}
-                    </Text>
-                </View>
-
-                {/* USUARIOS */}
-                <View style={styles.card}>
-                    <View style={[styles.iconCircle, { backgroundColor: '#EDE9FE' }]}>
-                        <Ionicons
-                            name="people-outline"
-                            size={28}
-                            color="#7C3AED"
-                        />
-                    </View>
-
-                    <Text style={styles.cardTitle}>
-                        Usuarios
-                    </Text>
-                    <Text style={styles.cardNumber}>
-                        {usuariosRegistrados}
-                    </Text>
-                </View>
-
-                {/* TRANSFERENCIAS */}
-                <View style={styles.card}>
-                    <View style={[styles.iconCircle, { backgroundColor: '#FFEDD5' }]}>
-                        <Ionicons
-                            name="swap-horizontal"
-                            size={28}
-                            color="#EA580C"
-                        />
-                    </View>
-
-                    <Text style={styles.cardTitle}>
-                        Transferencias
-                    </Text>
-                    <Text style={styles.cardNumber}>
-                        {transferencias}
-                    </Text>
-                </View>
-
-            </View>
-        </View>
+        </Screen>
     );
 }
 

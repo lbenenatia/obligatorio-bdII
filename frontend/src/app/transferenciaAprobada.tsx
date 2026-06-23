@@ -1,39 +1,42 @@
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from './screen';
 
 
 export default function PagoScreen() {
     const router = useRouter();
     return (
-        <View style={styles.container}>
-            <View style={styles.successContainer}>
-                <View style={styles.iconContainer}>
-                    <FontAwesome6
-                        name="check"
-                        size={90}
-                        color="#FFFFFF"
-                    />
+        <Screen>
+            <View style={styles.container}>
+                <View style={styles.successContainer}>
+                    <View style={styles.iconContainer}>
+                        <FontAwesome6
+                            name="check"
+                            size={90}
+                            color="#FFFFFF"
+                        />
+                    </View>
+
+                    <Text style={styles.title}>
+                        ¡Transferencia realizada!
+                    </Text>
+
+                    <Text style={styles.subtitle}>
+                        Su transferencia ha sido confirmada.
+                    </Text>
                 </View>
 
-                <Text style={styles.title}>
-                    ¡Transferencia realizada!
-                </Text>
-
-                <Text style={styles.subtitle}>
-                    Su transferencia ha sido confirmada.
-                </Text>
+                <View style={styles.actionsContainer}>
+                    <TouchableOpacity style={styles.primaryButton}
+                        onPress={() => router.push('/home')}>
+                        <Text style={styles.primaryButtonText}>
+                            Volver al inicio
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-
-            <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.primaryButton}
-                    onPress={() => router.push('/home')}>
-                    <Text style={styles.primaryButtonText}>
-                        Volver al inicio
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+        </Screen>
     );
 }
 

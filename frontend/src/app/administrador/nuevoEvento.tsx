@@ -5,13 +5,13 @@ import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import Screen from '../screen';
 
 type ValoresSector = { capMax: string; precio: string };
 
@@ -29,7 +29,7 @@ export default function NuevoEvento() {
     const [valoresSectores, setValoresSectores] = useState<Record<string, ValoresSector>>({});
 
     useEffect(() => {
-        EstadioService.listar().then(setEstadios).catch(() => {});
+        EstadioService.listar().then(setEstadios).catch(() => { });
     }, []);
 
     const estadioSeleccionado = estadios.find(
@@ -110,136 +110,143 @@ export default function NuevoEvento() {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.containerPrincipal}>
 
-            {/* BOTÓN VOLVER */}
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
-                <Text style={styles.backText}>‹</Text>
-            </TouchableOpacity>
-            <ScrollView contentContainerStyle={styles.container}>
-                <Text style={styles.title}>Nuevo Evento</Text>
+                {/* BOTÓN VOLVER */}
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
+                <View style={styles.container}>
+                    <Text style={styles.title}>Nuevo Evento</Text>
 
-                <View style={styles.formulario}>
-                    <Text style={styles.label}>Equipo local</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ej: Uruguay"
-                        value={equipoLocalNombre}
-                        onChangeText={setEquipoLocalNombre}
-                    />
+                    <View style={styles.formulario}>
+                        <Text style={styles.label}>Equipo local</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ej: Uruguay"
+                            value={equipoLocalNombre}
+                            onChangeText={setEquipoLocalNombre}
+                        />
 
-                    <Text style={styles.label}>Equipo visitante</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Ej: Argentina"
-                        value={equipoVisitanteNombre}
-                        onChangeText={setEquipoVisitanteNombre}
-                    />
+                        <Text style={styles.label}>Equipo visitante</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Ej: Argentina"
+                            value={equipoVisitanteNombre}
+                            onChangeText={setEquipoVisitanteNombre}
+                        />
 
-                    <Text style={styles.label}>Fecha</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="2026-06-15"
-                        value={fechaEvento}
-                        onChangeText={setFechaEvento}
-                    />
+                        <Text style={styles.label}>Fecha</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="2026-06-15"
+                            value={fechaEvento}
+                            onChangeText={setFechaEvento}
+                        />
 
-                    <Text style={styles.label}>Hora</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="20:00"
-                        value={horaEvento}
-                        onChangeText={setHoraEvento}
-                    />
+                        <Text style={styles.label}>Hora</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="20:00"
+                            value={horaEvento}
+                            onChangeText={setHoraEvento}
+                        />
 
 
-                    <Text style={styles.label}>Estadio</Text>
+                        <Text style={styles.label}>Estadio</Text>
 
-                    <TouchableOpacity
-                        style={styles.selector}
-                        onPress={() =>
-                            setMostrarEstadios(!mostrarEstadios)
-                        }
-                    >
-                        <Text
-                            style={
-                                estadioSeleccionado
-                                    ? styles.selectorText
-                                    : styles.placeholderText
+                        <TouchableOpacity
+                            style={styles.selector}
+                            onPress={() =>
+                                setMostrarEstadios(!mostrarEstadios)
                             }
                         >
-                            {estadioSeleccionado?.nombreEstadio || 'Seleccione un estadio'}
-                        </Text>
-                    </TouchableOpacity>
-
-                    {mostrarEstadios &&
-                        estadios.map(item => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={styles.opcionEstadio}
-                                onPress={() => seleccionarEstadio(item)}
+                            <Text
+                                style={
+                                    estadioSeleccionado
+                                        ? styles.selectorText
+                                        : styles.placeholderText
+                                }
                             >
-                                <Text style={styles.opcionEstadioTexto}>
-                                    {item.nombreEstadio}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-
-                    {estadioSeleccionado && (
-                        <>
-                            <View style={styles.capacidadBox}>
-                                <Text style={styles.capacidadTexto}>
-                                    Ubicación: {estadioSeleccionado.ubicacion}
-                                </Text>
-                            </View>
-
-                            <Text style={styles.label}>
-                                Capacidad y precio por sector (para este evento)
+                                {estadioSeleccionado?.nombreEstadio || 'Seleccione un estadio'}
                             </Text>
+                        </TouchableOpacity>
 
-                            {estadioSeleccionado.sectores.map(sector => (
-                                <React.Fragment key={sector.codigo}>
-                                    <Text style={styles.label}>
-                                        Sector {sector.codigo} (máx. {sector.capMax})
+                        {mostrarEstadios &&
+                            estadios.map(item => (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    style={styles.opcionEstadio}
+                                    onPress={() => seleccionarEstadio(item)}
+                                >
+                                    <Text style={styles.opcionEstadioTexto}>
+                                        {item.nombreEstadio}
                                     </Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={`Capacidad Sector ${sector.codigo}`}
-                                        keyboardType="numeric"
-                                        value={valoresSectores[sector.codigo]?.capMax ?? ''}
-                                        onChangeText={texto => cambiarCapMax(sector.codigo, texto)}
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder={`Precio Sector ${sector.codigo}`}
-                                        keyboardType="numeric"
-                                        value={valoresSectores[sector.codigo]?.precio ?? ''}
-                                        onChangeText={texto => cambiarPrecio(sector.codigo, texto)}
-                                    />
-                                </React.Fragment>
+                                </TouchableOpacity>
                             ))}
-                        </>
-                    )}
 
-                    <TouchableOpacity
-                        style={styles.boton}
-                        onPress={guardarEvento}
-                        disabled={guardando}
-                    >
-                        <Text style={styles.textoBoton}>
-                            {guardando ? 'Creando...' : 'Crear Evento'}
-                        </Text>
-                    </TouchableOpacity>
+                        {estadioSeleccionado && (
+                            <>
+                                <View style={styles.capacidadBox}>
+                                    <Text style={styles.capacidadTexto}>
+                                        Ubicación: {estadioSeleccionado.ubicacion}
+                                    </Text>
+                                </View>
+
+                                <Text style={styles.label}>
+                                    Capacidad y precio por sector (para este evento)
+                                </Text>
+
+                                {estadioSeleccionado.sectores.map(sector => (
+                                    <React.Fragment key={sector.codigo}>
+                                        <Text style={styles.label}>
+                                            Sector {sector.codigo} (máx. {sector.capMax})
+                                        </Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder={`Capacidad Sector ${sector.codigo}`}
+                                            keyboardType="numeric"
+                                            value={valoresSectores[sector.codigo]?.capMax ?? ''}
+                                            onChangeText={texto => cambiarCapMax(sector.codigo, texto)}
+                                        />
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder={`Precio Sector ${sector.codigo}`}
+                                            keyboardType="numeric"
+                                            value={valoresSectores[sector.codigo]?.precio ?? ''}
+                                            onChangeText={texto => cambiarPrecio(sector.codigo, texto)}
+                                        />
+                                    </React.Fragment>
+                                ))}
+                            </>
+                        )}
+
+                        <TouchableOpacity
+                            style={styles.boton}
+                            onPress={guardarEvento}
+                            disabled={guardando}
+                        >
+                            <Text style={styles.textoBoton}>
+                                {guardando ? 'Creando...' : 'Crear Evento'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </ScrollView>
-        </View>
+            </View>
+        </Screen>
     );
 }
 
 const styles = StyleSheet.create({
+    containerPrincipal: {
+        flexGrow: 1,
+        minHeight: '100%',
+        backgroundColor: '#051F3B',
+    },
     backButton: {
         position: 'absolute',
         top: 50,
@@ -260,6 +267,7 @@ const styles = StyleSheet.create({
         marginTop: -2,
     },
     container: {
+        flex: 1,
         backgroundColor: '#051F3B',
         padding: 20,
         paddingTop: 60,

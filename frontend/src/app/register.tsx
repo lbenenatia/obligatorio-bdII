@@ -10,6 +10,7 @@ import {
 import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import Screen from './screen';
 
 export default function RegisterScreen() {
     const [nombre, setNombre] = useState('');
@@ -66,90 +67,92 @@ export default function RegisterScreen() {
         });
     };
     return (
-        <View style={styles.container}>
-            <Image
-                source={require('../../assets/images/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-            />
+        <Screen>
+            <View style={styles.container}>
+                <Image
+                    source={require('../../assets/images/logo.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
 
-            <View style={styles.textContainer}>
-                <Text style={styles.text}>Paso 1 de 2</Text>
+                <View style={styles.textContainer}>
+                    <Text style={styles.text}>Paso 1 de 2</Text>
 
-                <Text style={styles.title}>
-                    Crear cuenta
-                </Text>
-
-                <Text style={styles.description}>
-                    Completa tus datos para registrarte
-                </Text>
-            </View>
-
-            <View style={styles.formContainer}>
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Nombre</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Nombre completo"
-                        value={nombre}
-                        onChangeText={setNombre}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Correo electrónico</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Correo electrónico"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        value={email}
-                        onChangeText={setEmail}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Contraseña</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Mínimo 8 caracteres"
-                        secureTextEntry
-                        value={password}
-                        onChangeText={setPassword}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Confirmar contraseña</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Repetir contraseña"
-                        secureTextEntry
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                    />
-                </View>
-            </View>
-
-            <View style={styles.bottomContainer}>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={continuar}
-                >
-                    <Text style={styles.buttonText}>Continuar</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.bottomText}>
-                    ¿Ya tenés una cuenta?{' '}
-                    <Text
-                        style={styles.loginLink}
-                        onPress={() => router.push('/login')}
-                    >
-                        Iniciar sesión
+                    <Text style={styles.title}>
+                        Crear cuenta
                     </Text>
-                </Text>
+
+                    <Text style={styles.description}>
+                        Completa tus datos para registrarte
+                    </Text>
+                </View>
+
+                <View style={styles.formContainer}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Nombre</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Nombre completo"
+                            value={nombre}
+                            onChangeText={setNombre}
+                        />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Correo electrónico</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Correo electrónico"
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                            value={email}
+                            onChangeText={setEmail}
+                        />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Contraseña</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Mínimo 8 caracteres"
+                            secureTextEntry
+                            value={password}
+                            onChangeText={setPassword}
+                        />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Confirmar contraseña</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Repetir contraseña"
+                            secureTextEntry
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.bottomContainer}>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={continuar}
+                    >
+                        <Text style={styles.buttonText}>Continuar</Text>
+                    </TouchableOpacity>
+
+                    <Text style={styles.bottomText}>
+                        ¿Ya tenés una cuenta?{' '}
+                        <Text
+                            style={styles.loginLink}
+                            onPress={() => router.push('/login')}
+                        >
+                            Iniciar sesión
+                        </Text>
+                    </Text>
+                </View>
             </View>
-        </View>
+        </Screen>
     );
 }
 
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
     },
 
     textContainer: {
-        marginTop: 5, 
+        marginTop: 5,
         alignItems: 'center',
         width: '85%',
     },
@@ -180,15 +183,15 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        marginTop: 15, 
-        fontSize: 30, 
+        marginTop: 15,
+        fontSize: 30,
         fontWeight: 'bold',
         color: '#000',
         textAlign: 'center',
     },
 
     description: {
-        marginTop: 10, 
+        marginTop: 10,
         fontWeight: 'medium',
         fontSize: 14,
         color: '#7B8496',
@@ -197,7 +200,7 @@ const styles = StyleSheet.create({
 
     formContainer: {
         width: '85%',
-        marginTop: 25, 
+        marginTop: 25,
         gap: 16,
     },
 
@@ -223,7 +226,7 @@ const styles = StyleSheet.create({
     bottomContainer: {
         width: '85%',
         alignItems: 'center',
-        marginTop: 35, 
+        marginTop: 35,
     },
 
     button: {

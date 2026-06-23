@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import Screen from '../screen';
 
 export default function EventoDetalle() {
     const [tabActiva, setTabActiva] = useState('informacion');
@@ -21,8 +22,8 @@ export default function EventoDetalle() {
     useEffect(() => {
         if (!id) return;
 
-        EventoService.obtener(Number(id)).then(setEvento).catch(() => {});
-        EventoService.disponibilidad(Number(id)).then(setDisponibilidad).catch(() => {});
+        EventoService.obtener(Number(id)).then(setEvento).catch(() => { });
+        EventoService.disponibilidad(Number(id)).then(setDisponibilidad).catch(() => { });
     }, [id]);
 
     if (!evento) {
@@ -76,197 +77,197 @@ export default function EventoDetalle() {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <Screen backgroundColor="#051F3B">
+            <View style={{ flex: 1 }}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
 
-            {/* BOTÓN VOLVER */}
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
-                <Text style={styles.backText}>‹</Text>
-            </TouchableOpacity>
+                <View style={styles.container}>
+                    <Text style={styles.titulo}>Detalles del evento</Text>
 
-            <View style={styles.container}>
-                <Text style={styles.titulo}>Detalles del evento</Text>
+                    <Text style={styles.partido}>
+                        {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
+                    </Text>
 
-                <Text style={styles.partido}>
-                    {evento.equipoLocal.nombreEquipo} vs {evento.equipoVisitante.nombreEquipo}
-                </Text>
+                    <Text style={styles.info}>
+                        {evento.fechaEvento} - {evento.horaEvento}
+                    </Text>
 
-                <Text style={styles.info}>
-                    {evento.fechaEvento} - {evento.horaEvento}
-                </Text>
+                    <Text style={styles.info}>
+                        {evento.estadio.nombreEstadio}
+                    </Text>
 
-                <Text style={styles.info}>
-                    {evento.estadio.nombreEstadio}
-                </Text>
-
-                <View style={styles.componente}>
-                    <View style={styles.tabsContainer}>
-                        <TouchableOpacity
-                            style={[
-                                styles.tab,
-                                tabActiva === 'informacion' && styles.tabActiva,
-                            ]}
-                            onPress={() => setTabActiva('informacion')}
-                        >
-                            <Text
+                    <View style={styles.componente}>
+                        <View style={styles.tabsContainer}>
+                            <TouchableOpacity
                                 style={[
-                                    styles.tabTexto,
-                                    tabActiva === 'informacion' &&
-                                    styles.tabTextoActivo,
+                                    styles.tab,
+                                    tabActiva === 'informacion' && styles.tabActiva,
                                 ]}
+                                onPress={() => setTabActiva('informacion')}
                             >
-                                Información
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.tab,
-                                tabActiva === 'sectores' && styles.tabActiva,
-                            ]}
-                            onPress={() => setTabActiva('sectores')}
-                        >
-                            <Text
-                                style={[
-                                    styles.tabTexto,
-                                    tabActiva === 'sectores' &&
-                                    styles.tabTextoActivo,
-                                ]}
-                            >
-                                Sectores
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {tabActiva === 'informacion' ? (
-                        <>
-                            <View style={styles.fila}>
-                                <Text style={styles.label}>
-                                    Capacidad total
-                                </Text>
-
-                                <Text style={styles.valor}>
-                                    {capacidadTotal}
-                                </Text>
-                            </View>
-                            <View style={styles.fila}>
-                                <Text style={styles.label}>
-                                    Entradas vendidas
-                                </Text>
-
-                                <Text style={styles.valor}>
-                                    {entradasVendidas}
-                                </Text>
-                            </View>
-
-                            <View style={styles.fila}>
-                                <Text style={styles.label}>
-                                    Entradas disponibles
-                                </Text>
-
-                                <Text style={styles.valor}>
-                                    {entradasDisponibles}
-                                </Text>
-                            </View>
-
-                            <View style={styles.fila}>
-                                <Text style={styles.label}>
-                                    Sectores habilitados
-                                </Text>
-
-                                <Text style={styles.valor}>
-                                    {sectoresHabilitados}
-                                </Text>
-                            </View>
-
-                            <View style={styles.fila}>
-                                <Text style={styles.label}>
-                                    Estado
-                                </Text>
-
                                 <Text
                                     style={[
-                                        styles.valor,
-                                        {
-                                            color:
-                                                estadoEvento === 'Agotado'
-                                                    ? '#C62828'
-                                                    : '#16A34A',
-                                        },
+                                        styles.tabTexto,
+                                        tabActiva === 'informacion' &&
+                                        styles.tabTextoActivo,
                                     ]}
                                 >
-                                    {estadoEvento}
+                                    Información
                                 </Text>
-                            </View>
-                        </>
-                    ) : (
-                        <>
-                            {disponibilidad.map(sector => {
-                                const vendidasSector = sector.capMax - sector.disponibles;
+                            </TouchableOpacity>
 
-                                return (
-                                    <View key={sector.codigo} style={styles.fila}>
-                                        <Text style={styles.label}>
-                                            Sector {sector.codigo}
-                                        </Text>
-
-                                        <Text style={styles.valor}>
-                                            {vendidasSector}/{sector.capMax} vendidas - USD {sector.precio}
-                                        </Text>
-                                    </View>
-                                );
-                            })}
-                        </>
-                    )}
-
-                    <View style={styles.botonesContainer}>
-                        <TouchableOpacity
-                            style={styles.botonEditar}
-                            onPress={() =>
-                                router.push({
-                                    pathname: '/administrador/editarEvento',
-                                    params: {
-                                        id: evento.id,
-                                    },
-                                })
-                            }
-                        >
-                            <Text style={styles.textoBoton}>
-                                Editar evento
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.botonEliminar,
-                                entradasVendidas > 0 && {
-                                    backgroundColor: '#999',
-                                },
-                            ]}
-                            disabled={entradasVendidas > 0}
-                            onPress={borrarEvento}
-                        >
-                            <Text style={styles.textoBoton}>
-                                Eliminar evento
-                            </Text>
-                        </TouchableOpacity>
-                        {entradasVendidas > 0 && (
-                            <Text
-                                style={{
-                                    color: '#C62828',
-                                    marginTop: 10,
-                                    textAlign: 'center',
-                                }}
+                            <TouchableOpacity
+                                style={[
+                                    styles.tab,
+                                    tabActiva === 'sectores' && styles.tabActiva,
+                                ]}
+                                onPress={() => setTabActiva('sectores')}
                             >
-                                No puede eliminarse porque ya tiene entradas vendidas.
-                            </Text>
+                                <Text
+                                    style={[
+                                        styles.tabTexto,
+                                        tabActiva === 'sectores' &&
+                                        styles.tabTextoActivo,
+                                    ]}
+                                >
+                                    Sectores
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {tabActiva === 'informacion' ? (
+                            <>
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Capacidad total
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {capacidadTotal}
+                                    </Text>
+                                </View>
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Entradas vendidas
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {entradasVendidas}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Entradas disponibles
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {entradasDisponibles}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Sectores habilitados
+                                    </Text>
+
+                                    <Text style={styles.valor}>
+                                        {sectoresHabilitados}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.fila}>
+                                    <Text style={styles.label}>
+                                        Estado
+                                    </Text>
+
+                                    <Text
+                                        style={[
+                                            styles.valor,
+                                            {
+                                                color:
+                                                    estadoEvento === 'Agotado'
+                                                        ? '#C62828'
+                                                        : '#16A34A',
+                                            },
+                                        ]}
+                                    >
+                                        {estadoEvento}
+                                    </Text>
+                                </View>
+                            </>
+                        ) : (
+                            <>
+                                {disponibilidad.map(sector => {
+                                    const vendidasSector = sector.capMax - sector.disponibles;
+
+                                    return (
+                                        <View key={sector.codigo} style={styles.fila}>
+                                            <Text style={styles.label}>
+                                                Sector {sector.codigo}
+                                            </Text>
+
+                                            <Text style={styles.valor}>
+                                                {vendidasSector}/{sector.capMax} vendidas - USD {sector.precio}
+                                            </Text>
+                                        </View>
+                                    );
+                                })}
+                            </>
                         )}
+
+                        <View style={styles.botonesContainer}>
+                            <TouchableOpacity
+                                style={styles.botonEditar}
+                                onPress={() =>
+                                    router.push({
+                                        pathname: '/administrador/editarEvento',
+                                        params: {
+                                            id: evento.id,
+                                        },
+                                    })
+                                }
+                            >
+                                <Text style={styles.textoBoton}>
+                                    Editar evento
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.botonEliminar,
+                                    entradasVendidas > 0 && {
+                                        backgroundColor: '#999',
+                                    },
+                                ]}
+                                disabled={entradasVendidas > 0}
+                                onPress={borrarEvento}
+                            >
+                                <Text style={styles.textoBoton}>
+                                    Eliminar evento
+                                </Text>
+                            </TouchableOpacity>
+                            {entradasVendidas > 0 && (
+                                <Text
+                                    style={{
+                                        color: '#C62828',
+                                        marginTop: 10,
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    No puede eliminarse porque ya tiene entradas vendidas.
+                                </Text>
+                            )}
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
+        </Screen>
     );
 }
 

@@ -4,13 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import Screen from '../screen';
 
 export default function CrearEstadio() {
     const router = useRouter();
@@ -61,130 +61,132 @@ export default function CrearEstadio() {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <Screen backgroundColor="#051F3B">
+            <View style={{ flex: 1 }}>
 
-            {/* BOTÓN VOLVER */}
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
-                <Text style={styles.backText}>‹</Text>
-            </TouchableOpacity>
+                {/* BOTÓN VOLVER */}
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
 
-            <ScrollView style={styles.container}>
+                <View style={styles.container}>
 
-                <View style={styles.iconContainer}>
-                    <Ionicons name="football-outline" size={45} color="#FFF" />
+                    <View style={styles.iconContainer}>
+                        <Ionicons name="football-outline" size={45} color="#FFF" />
+                    </View>
+
+                    <Text style={styles.title}>Crear Estadio</Text>
+
+                    <View style={styles.formContainer}>
+                        {/* NOMBRE */}
+                        <Text style={styles.label}>Nombre del estadio</Text>
+                        <TextInput
+                            value={nombreEstadio}
+                            onChangeText={setNombreEstadio}
+                            placeholder="Ej. Estadio Nacional"
+                            placeholderTextColor="#6B7280"
+                            style={styles.input}
+                        />
+
+                        {/* UBICACIÓN */}
+                        <Text style={styles.label}>Ubicación</Text>
+                        <TextInput
+                            value={ubicacion}
+                            onChangeText={setUbicacion}
+                            placeholder="Ej. Ciudad de México, México"
+                            placeholderTextColor="#6B7280"
+                            style={styles.input}
+                        />
+
+                        <Text style={styles.label}>Sector A</Text>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Capacidad Sector A"
+                            keyboardType="numeric"
+                            value={capMaxA}
+                            onChangeText={setCapMaxA}
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Precio Sector A"
+                            keyboardType="numeric"
+                            value={precioA}
+                            onChangeText={setPrecioA}
+                        />
+
+                        <Text style={styles.label}>Sector B</Text>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Capacidad Sector B"
+                            keyboardType="numeric"
+                            value={capMaxB}
+                            onChangeText={setCapMaxB}
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Precio Sector B"
+                            keyboardType="numeric"
+                            value={precioB}
+                            onChangeText={setPrecioB}
+                        />
+
+                        <Text style={styles.label}>Sector C</Text>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Capacidad Sector C"
+                            keyboardType="numeric"
+                            value={capMaxC}
+                            onChangeText={setCapMaxC}
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Precio Sector C"
+                            keyboardType="numeric"
+                            value={precioC}
+                            onChangeText={setPrecioC}
+                        />
+
+                        <Text style={styles.label}>Sector D</Text>
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Capacidad Sector D"
+                            keyboardType="numeric"
+                            value={capMaxD}
+                            onChangeText={setCapMaxD}
+                        />
+
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Precio Sector D"
+                            keyboardType="numeric"
+                            value={precioD}
+                            onChangeText={setPrecioD}
+                        />
+
+                        {/* BOTÓN GUARDAR */}
+                        <TouchableOpacity
+                            style={styles.saveButton}
+                            onPress={guardarEstadio}
+                            disabled={guardando}
+                        >
+                            <Text style={styles.saveButtonText}>
+                                {guardando ? 'Guardando...' : 'Guardar estadio'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-
-                <Text style={styles.title}>Crear Estadio</Text>
-
-                <View style={styles.formContainer}>
-                    {/* NOMBRE */}
-                    <Text style={styles.label}>Nombre del estadio</Text>
-                    <TextInput
-                        value={nombreEstadio}
-                        onChangeText={setNombreEstadio}
-                        placeholder="Ej. Estadio Nacional"
-                        placeholderTextColor="#6B7280"
-                        style={styles.input}
-                    />
-
-                    {/* UBICACIÓN */}
-                    <Text style={styles.label}>Ubicación</Text>
-                    <TextInput
-                        value={ubicacion}
-                        onChangeText={setUbicacion}
-                        placeholder="Ej. Ciudad de México, México"
-                        placeholderTextColor="#6B7280"
-                        style={styles.input}
-                    />
-
-                    <Text style={styles.label}>Sector A</Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Capacidad Sector A"
-                        keyboardType="numeric"
-                        value={capMaxA}
-                        onChangeText={setCapMaxA}
-                    />
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Precio Sector A"
-                        keyboardType="numeric"
-                        value={precioA}
-                        onChangeText={setPrecioA}
-                    />
-
-                    <Text style={styles.label}>Sector B</Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Capacidad Sector B"
-                        keyboardType="numeric"
-                        value={capMaxB}
-                        onChangeText={setCapMaxB}
-                    />
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Precio Sector B"
-                        keyboardType="numeric"
-                        value={precioB}
-                        onChangeText={setPrecioB}
-                    />
-
-                    <Text style={styles.label}>Sector C</Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Capacidad Sector C"
-                        keyboardType="numeric"
-                        value={capMaxC}
-                        onChangeText={setCapMaxC}
-                    />
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Precio Sector C"
-                        keyboardType="numeric"
-                        value={precioC}
-                        onChangeText={setPrecioC}
-                    />
-
-                    <Text style={styles.label}>Sector D</Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Capacidad Sector D"
-                        keyboardType="numeric"
-                        value={capMaxD}
-                        onChangeText={setCapMaxD}
-                    />
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Precio Sector D"
-                        keyboardType="numeric"
-                        value={precioD}
-                        onChangeText={setPrecioD}
-                    />
-
-                    {/* BOTÓN GUARDAR */}
-                    <TouchableOpacity
-                        style={styles.saveButton}
-                        onPress={guardarEstadio}
-                        disabled={guardando}
-                    >
-                        <Text style={styles.saveButtonText}>
-                            {guardando ? 'Guardando...' : 'Guardar estadio'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
-        </View>
+            </View>
+        </Screen>
     );
 }
 const styles = StyleSheet.create({

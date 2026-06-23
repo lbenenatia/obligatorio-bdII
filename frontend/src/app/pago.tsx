@@ -4,6 +4,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from './screen';
 
 export default function PagoScreen() {
     const router = useRouter();
@@ -60,112 +61,114 @@ export default function PagoScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
-                <Text style={styles.backText}>‹</Text>
-            </TouchableOpacity>
-            <Image
-                source={require('../../assets/images/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-            />
+        <Screen>
+            <View style={styles.container}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
+                <Image
+                    source={require('../../assets/images/logo.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
 
-            <Text style={styles.title}>Paso 1 de 2</Text>
+                <Text style={styles.title}>Paso 1 de 2</Text>
 
-            <View style={styles.paymentCard}>
-                <View style={styles.topSection}>
-                    <View style={styles.textGroup}>
-                        <Text style={styles.matchTitle}>
-                            {match ?? 'Partido'}
-                        </Text>
+                <View style={styles.paymentCard}>
+                    <View style={styles.topSection}>
+                        <View style={styles.textGroup}>
+                            <Text style={styles.matchTitle}>
+                                {match ?? 'Partido'}
+                            </Text>
 
-                        <Text style={styles.sectorText}>
-                            Sector {sector ?? '-'}
-                        </Text>
+                            <Text style={styles.sectorText}>
+                                Sector {sector ?? '-'}
+                            </Text>
 
-                        <Text style={styles.ticketCount}>
-                            {cantidadNum} entradas
-                        </Text>
+                            <Text style={styles.ticketCount}>
+                                {cantidadNum} entradas
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.bottomSection}>
+                        <View style={styles.row}>
+                            <Text style={styles.bottomText}>Entradas</Text>
+                            <Text style={styles.priceText}>USD {subtotal}</Text>
+                        </View>
+
+                        <Text style={styles.bottomText}>Comisión 5%</Text>
+
+                        <View style={styles.divider} />
+
+                        <View style={styles.row}>
+                            <Text style={styles.footerText}>TOTAL</Text>
+                            <Text style={styles.footerText}>
+                                USD {total.toFixed(2)}
+                            </Text>
+                        </View>
                     </View>
                 </View>
 
-                <View style={styles.bottomSection}>
-                    <View style={styles.row}>
-                        <Text style={styles.bottomText}>Entradas</Text>
-                        <Text style={styles.priceText}>USD {subtotal}</Text>
+                <TouchableOpacity
+                    style={styles.paymentOption}
+                    onPress={() => setMetodoPago('tarjeta')}
+                >
+                    <View style={styles.optionLeft}>
+                        <FontAwesome6 name="credit-card" size={24} color="#000" />
+                        <Text style={styles.paymentOptionText}>Tarjeta</Text>
                     </View>
-
-                    <Text style={styles.bottomText}>Comisión 5%</Text>
-
-                    <View style={styles.divider} />
-
-                    <View style={styles.row}>
-                        <Text style={styles.footerText}>TOTAL</Text>
-                        <Text style={styles.footerText}>
-                            USD {total.toFixed(2)}
-                        </Text>
+                    <View
+                        style={[
+                            styles.radioButton,
+                            metodoPago === 'tarjeta' && styles.radioButtonSelected,
+                        ]}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.paymentOption}
+                    onPress={() => setMetodoPago('paypal')}
+                >
+                    <View style={styles.optionLeft}>
+                        <FontAwesome6 name="paypal" size={24} color="#003087" />
+                        <Text style={styles.paymentOptionText}>PayPal</Text>
                     </View>
-                </View>
+                    <View
+                        style={[
+                            styles.radioButton,
+                            metodoPago === 'paypal' && styles.radioButtonSelected,
+                        ]}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.paymentOption}
+                    onPress={() => setMetodoPago('applepay')}
+                >
+                    <View style={styles.optionLeft}>
+                        <FontAwesome6 name="apple-pay" size={24} color="#000" />
+                        <Text style={styles.paymentOptionText}>Apple Pay</Text>
+                    </View>
+                    <View
+                        style={[
+                            styles.radioButton,
+                            metodoPago === 'applepay' && styles.radioButtonSelected,
+                        ]}
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={finalizarPago}
+                    disabled={procesando}
+                >
+                    <Text style={styles.buttonText}>
+                        {procesando ? 'Procesando...' : 'Finalizar pago'}
+                    </Text>
+                </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-                style={styles.paymentOption}
-                onPress={() => setMetodoPago('tarjeta')}
-            >
-                <View style={styles.optionLeft}>
-                    <FontAwesome6 name="credit-card" size={24} color="#000" />
-                    <Text style={styles.paymentOptionText}>Tarjeta</Text>
-                </View>
-                <View
-                    style={[
-                        styles.radioButton,
-                        metodoPago === 'tarjeta' && styles.radioButtonSelected,
-                    ]}
-                />
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.paymentOption}
-                onPress={() => setMetodoPago('paypal')}
-            >
-                <View style={styles.optionLeft}>
-                    <FontAwesome6 name="paypal" size={24} color="#003087" />
-                    <Text style={styles.paymentOptionText}>PayPal</Text>
-                </View>
-                <View
-                    style={[
-                        styles.radioButton,
-                        metodoPago === 'paypal' && styles.radioButtonSelected,
-                    ]}
-                />
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.paymentOption}
-                onPress={() => setMetodoPago('applepay')}
-            >
-                <View style={styles.optionLeft}>
-                    <FontAwesome6 name="apple-pay" size={24} color="#000" />
-                    <Text style={styles.paymentOptionText}>Apple Pay</Text>
-                </View>
-                <View
-                    style={[
-                        styles.radioButton,
-                        metodoPago === 'applepay' && styles.radioButtonSelected,
-                    ]}
-                />
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.button}
-                onPress={finalizarPago}
-                disabled={procesando}
-            >
-                <Text style={styles.buttonText}>
-                    {procesando ? 'Procesando...' : 'Finalizar pago'}
-                </Text>
-            </TouchableOpacity>
-        </View>
+        </Screen>
     );
 }
 const styles = StyleSheet.create({

@@ -5,6 +5,7 @@ import { hoyLocalISO } from '@/utils/fecha';
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Screen from '../screen';
 
 export default function HomeScreen() {
     const { usuario } = useAuth();
@@ -23,42 +24,44 @@ export default function HomeScreen() {
             setProximoEvento(proximos[0] ?? null);
         };
 
-        cargarEvento().catch(() => {});
+        cargarEvento().catch(() => { });
     }, []);
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <View style={styles.headerTextContainer}>
-                    <Text style={styles.headerTitle}>
-                        ¡Hola {usuario?.nombre}!
-                    </Text>
-                    <Text style={styles.headerSubtitle}>Listo para vivir el mundial 2026</Text>
+            <Screen backgroundColor="#051F3B">
+                <View style={styles.header}>
+                    <View style={styles.headerTextContainer}>
+                        <Text style={styles.headerTitle}>
+                            ¡Hola {usuario?.nombre}!
+                        </Text>
+                        <Text style={styles.headerSubtitle}>Listo para vivir el mundial 2026</Text>
+                    </View>
+
+                    <Image
+                        source={require('../../../assets/images/loguito.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
                 </View>
+                <View style={styles.cardContainer}>
+                    <View style={styles.infoCard}>
+                        <Text style={styles.text1}>PROXIMO EVENTO</Text>
+                        <Text style={styles.text2}>
+                            {proximoEvento
+                                ? `${proximoEvento.equipoLocal.nombreEquipo} vs ${proximoEvento.equipoVisitante.nombreEquipo}`
+                                : 'Sin eventos próximos'}
+                        </Text>
 
-                <Image
-                    source={require('../../../assets/images/loguito.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-            </View>
-            <View style={styles.cardContainer}>
-                <View style={styles.infoCard}>
-                    <Text style={styles.text1}>PROXIMO EVENTO</Text>
-                    <Text style={styles.text2}>
-                        {proximoEvento
-                            ? `${proximoEvento.equipoLocal.nombreEquipo} vs ${proximoEvento.equipoVisitante.nombreEquipo}`
-                            : 'Sin eventos próximos'}
-                    </Text>
+                        <Text style={styles.text3}>
+                            {proximoEvento?.fechaEvento} - {proximoEvento?.horaEvento}
+                        </Text>
 
-                    <Text style={styles.text3}>
-                        {proximoEvento?.fechaEvento} - {proximoEvento?.horaEvento}
-                    </Text>
-
-                    <Text style={styles.text4}>
-                        {proximoEvento?.estadio.nombreEstadio}
-                    </Text>
+                        <Text style={styles.text4}>
+                            {proximoEvento?.estadio.nombreEstadio}
+                        </Text>
+                    </View>
                 </View>
-            </View>
+            </Screen>
         </SafeAreaView>
     );
 }

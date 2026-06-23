@@ -5,13 +5,13 @@ import { mostrarAlerta } from '@/utils/alert';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View
 } from 'react-native';
+import Screen from '../screen';
 
 type ValoresSector = { capMax: string; precio: string };
 
@@ -132,9 +132,9 @@ export default function EditarEvento() {
     };
 
     return (
+        <Screen backgroundColor="#051F3B">
         <View style={{ flex: 1 }}>
 
-            {/* BOTÓN VOLVER */}
             <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => router.back()}
@@ -142,7 +142,7 @@ export default function EditarEvento() {
                 <Text style={styles.backText}>‹</Text>
             </TouchableOpacity>
 
-            <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.container}>
                 <Text style={styles.title}>Editar Evento</Text>
 
                 <View style={styles.formulario}>
@@ -256,8 +256,9 @@ export default function EditarEvento() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
         </View>
+        </Screen>
     );
 }
 

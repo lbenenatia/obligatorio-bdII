@@ -5,6 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import Screen from './screen';
 
 type EntradaParams = {
     id: string;
@@ -86,90 +87,92 @@ export default function EntradaScreen() {
     );
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => router.back()}
-            >
-                <Text style={styles.backText}>‹</Text>
-            </TouchableOpacity>
-            {/* LOGO */}
-            <Image
-                source={require('../../assets/images/logo_blanco.png')}
-                style={styles.logo}
-                resizeMode="contain"
-            />
-
-            <View style={styles.mainCard}>
+        <Screen backgroundColor="#051F3B">
+            <View style={styles.container}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                >
+                    <Text style={styles.backText}>‹</Text>
+                </TouchableOpacity>
+                {/* LOGO */}
                 <Image
-                    source={require('../../assets/images/logo.png')}
-                    style={styles.cardLogo}
+                    source={require('../../assets/images/logo_blanco.png')}
+                    style={styles.logo}
                     resizeMode="contain"
                 />
 
-                <View style={styles.contentContainer}>
-                    <Text style={styles.title}>
-                        {equipoLocal} vs {equipoVisitante}
-                    </Text>
+                <View style={styles.mainCard}>
+                    <Image
+                        source={require('../../assets/images/logo.png')}
+                        style={styles.cardLogo}
+                        resizeMode="contain"
+                    />
 
-                    <Text style={styles.subtitle}>
-                        {fecha} • {time}
-                        {sector ? ` • Sector ${sector}` : ''}
-                        {asiento ? `, Asiento ${asiento}` : ''}
-                    </Text>
-
-                    <View style={styles.divider} />
-
-                    <View style={styles.qrContainer}>
-                        {qrValue && <QRCode value={qrValue} size={110} />}
-                    </View>
-
-                    <View style={styles.timerContainer}>
-                        <Text style={styles.refreshIcon}>↻</Text>
-
-                        <Text style={styles.timerText}>
-                            El código QR se actualiza en:{' '}
-                            <Text style={styles.timerBold}>
-                                00:{seconds < 10 ? `0${seconds}` : seconds}
-                            </Text>
+                    <View style={styles.contentContainer}>
+                        <Text style={styles.title}>
+                            {equipoLocal} vs {equipoVisitante}
                         </Text>
+
+                        <Text style={styles.subtitle}>
+                            {fecha} • {time}
+                            {sector ? ` • Sector ${sector}` : ''}
+                            {asiento ? `, Asiento ${asiento}` : ''}
+                        </Text>
+
+                        <View style={styles.divider} />
+
+                        <View style={styles.qrContainer}>
+                            {qrValue && <QRCode value={qrValue} size={110} />}
+                        </View>
+
+                        <View style={styles.timerContainer}>
+                            <Text style={styles.refreshIcon}>↻</Text>
+
+                            <Text style={styles.timerText}>
+                                El código QR se actualiza en:{' '}
+                                <Text style={styles.timerBold}>
+                                    00:{seconds < 10 ? `0${seconds}` : seconds}
+                                </Text>
+                            </Text>
+                        </View>
                     </View>
                 </View>
-            </View>
 
-            <View style={styles.buttonsContainer}>
-                <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={() =>
-                        router.push({
-                            pathname: '/transfer',
-                            params: {
-                                id: id,
-                                match: `${equipoLocal} vs ${equipoVisitante}`,
-                                date: fecha,
-                                time: time,
-                                estadio: estadio,
-                                sector: sector,
-                                cantidad: asiento,
-                            },
-                        })
-                    }
-                >
-                    <Text style={styles.primaryButtonText}>
-                        Transferir entrada
-                    </Text>
-                </TouchableOpacity>
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity
+                        style={styles.primaryButton}
+                        onPress={() =>
+                            router.push({
+                                pathname: '/transfer',
+                                params: {
+                                    id: id,
+                                    match: `${equipoLocal} vs ${equipoVisitante}`,
+                                    date: fecha,
+                                    time: time,
+                                    estadio: estadio,
+                                    sector: sector,
+                                    cantidad: asiento,
+                                },
+                            })
+                        }
+                    >
+                        <Text style={styles.primaryButtonText}>
+                            Transferir entrada
+                        </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={styles.secondaryButton}
-                    onPress={() => router.push('/home')}
-                >
-                    <Text style={styles.secondaryButtonText}>
-                        Volver al inicio
-                    </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.secondaryButton}
+                        onPress={() => router.push('/home')}
+                    >
+                        <Text style={styles.secondaryButtonText}>
+                            Volver al inicio
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-        </View>
+        </Screen>
     );
 }
 

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 
 import { FontAwesome6 } from '@expo/vector-icons';
+import Screen from '../screen';
 
 export default function TicketsScreen() {
     const router = useRouter();
@@ -88,11 +89,12 @@ export default function TicketsScreen() {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.searchContainer}>
-                <FontAwesome6
-                    name="magnifying-glass"
-                    size={18}
+        <Screen backgroundColor="#051F3B">
+            <SafeAreaView style={styles.container}>
+                <View style={styles.searchContainer}>
+                    <FontAwesome6
+                        name="magnifying-glass"
+                        size={18}
                     color="#6B7280"
                 />
 
@@ -153,6 +155,7 @@ export default function TicketsScreen() {
                 contentContainerStyle={styles.list}
             />
         </SafeAreaView>
+    </Screen>
     );
 }
 

@@ -4,6 +4,7 @@ import * as Print from 'expo-print';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from './screen';
 
 export default function PagoAprobado() {
     const router = useRouter();
@@ -93,87 +94,89 @@ export default function PagoAprobado() {
         await Sharing.shareAsync(uri);
     };
     return (
-        <View style={styles.container}>
-            <View style={styles.successContainer}>
-                <View style={styles.iconContainer}>
-                    <FontAwesome6
-                        name="check"
-                        size={90}
-                        color="#FFFFFF"
-                    />
+        <Screen>
+            <View style={styles.container}>
+                <View style={styles.successContainer}>
+                    <View style={styles.iconContainer}>
+                        <FontAwesome6
+                            name="check"
+                            size={90}
+                            color="#FFFFFF"
+                        />
+                    </View>
+
+                    <Text style={styles.title}>
+                        ¡Compra realizada!
+                    </Text>
+
+                    <Text style={styles.subtitle}>
+                        Su compra ha sido confirmada. ¡Disfruta el mundial 2026!
+                    </Text>
                 </View>
 
-                <Text style={styles.title}>
-                    ¡Compra realizada!
-                </Text>
+                <View style={styles.actionsContainer}>
+                    <TouchableOpacity style={styles.primaryButton}
+                        onPress={() => router.push('/misEntradas')}>
+                        <Text style={styles.primaryButtonText}>
+                            Ver mis entradas
+                        </Text>
+                    </TouchableOpacity>
 
-                <Text style={styles.subtitle}>
-                    Su compra ha sido confirmada. ¡Disfruta el mundial 2026!
-                </Text>
+                    <TouchableOpacity style={styles.secondaryButton}
+                        onPress={() => router.push('/(tabs)/home')}>
+                        <Text style={styles.secondaryButtonText}>
+                            Volver al inicio
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.footer}>
+                    <TouchableOpacity
+                        style={styles.footerButton}
+                        onPress={() => {
+                            if (!primeraEntradaId) return;
+
+                            router.push({
+                                pathname: '/transfer',
+                                params: {
+                                    id: String(primeraEntradaId),
+                                    match,
+                                    date,
+                                    time,
+                                    estadio,
+                                    sector,
+                                },
+                            });
+                        }}
+                    >
+                        <FontAwesome6
+                            name="share-nodes"
+                            size={18}
+                            color="#1958D0"
+                        />
+
+                        <Text style={styles.footerButtonText}>
+                            Transferir
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.footerButton}
+                        onPress={descargarPDF}
+                    >
+                        <Text style={styles.footerButtonText}>
+                            Descargar
+                        </Text>
+
+                        <FontAwesome6
+                            name="download"
+                            size={18}
+                            color="#1958D0"
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
-
-            <View style={styles.actionsContainer}>
-                <TouchableOpacity style={styles.primaryButton}
-                    onPress={() => router.push('/misEntradas')}>
-                    <Text style={styles.primaryButtonText}>
-                        Ver mis entradas
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.secondaryButton}
-                    onPress={() => router.push('/(tabs)/home')}>
-                    <Text style={styles.secondaryButtonText}>
-                        Volver al inicio
-                    </Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.footer}>
-                <TouchableOpacity
-                    style={styles.footerButton}
-                    onPress={() => {
-                        if (!primeraEntradaId) return;
-
-                        router.push({
-                            pathname: '/transfer',
-                            params: {
-                                id: String(primeraEntradaId),
-                                match,
-                                date,
-                                time,
-                                estadio,
-                                sector,
-                            },
-                        });
-                    }}
-                >
-                    <FontAwesome6
-                        name="share-nodes"
-                        size={18}
-                        color="#1958D0"
-                    />
-
-                    <Text style={styles.footerButtonText}>
-                        Transferir
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={styles.footerButton}
-                    onPress={descargarPDF}
-                >
-                    <Text style={styles.footerButtonText}>
-                        Descargar
-                    </Text>
-
-                    <FontAwesome6
-                        name="download"
-                        size={18}
-                        color="#1958D0"
-                    />
-                </TouchableOpacity>
-            </View>
-        </View>
+        </Screen>
     );
 }
 
