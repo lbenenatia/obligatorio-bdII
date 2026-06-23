@@ -183,8 +183,8 @@ export default function PagoAprobado() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        minHeight: '100%',
         backgroundColor: '#FFFFFF',
-        paddingVertical: 40,
     },
 
     successContainer: {
@@ -252,11 +252,7 @@ const styles = StyleSheet.create({
     },
 
     footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-
+        marginTop: 'auto',
         height: 115,
         backgroundColor: '#D9D9D9',
 

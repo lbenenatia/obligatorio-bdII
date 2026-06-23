@@ -9,12 +9,19 @@ import {
 } from 'react-native';
 
 import { useRouter } from 'expo-router';
+import { useWindowDimensions } from 'react-native';
 
 export default function HomeScreen() {
+  const { width, height } = useWindowDimensions();
+
+  const backgroundImage =
+    width > height
+      ? require('../../assets/images/img_fondo_desktop.png')
+      : require('../../assets/images/img_fondo.png');
   const router = useRouter();
   return (
     <ImageBackground
-      source={require('../../assets/images/img_fondo.png')}
+      source={backgroundImage}
       style={styles.background}
       resizeMode="cover"
     >
@@ -54,6 +61,8 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
 
   safe: {

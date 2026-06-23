@@ -40,90 +40,92 @@ export default function Perfil() {
     return (
         <Screen backgroundColor="#051F3B">
             <View style={styles.container}>
-                <Image
-                    source={require('../../../../assets/images/logo_blanco.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
+                <View style={styles.inner}>
+                    <Image
+                        source={require('../../../../assets/images/logo_blanco.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
 
-                <View style={styles.textContainer}>
-                    <Text style={styles.title}>
-                        👋 ¡Hola {usuario?.nombre || 'Admin'}!
-                    </Text>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.title}>
+                            👋 ¡Hola {usuario?.nombre || 'Admin'}!
+                        </Text>
 
-                    <Text style={styles.subtitle}>
-                        {usuario?.rol || 'ADMINISTRADOR'}
-                    </Text>
-                </View>
-
-                <View style={styles.grid}>
-
-                    {/* EVENTOS */}
-                    <View style={styles.card}>
-                        <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
-                            <MaterialCommunityIcons
-                                name="calendar-check"
-                                size={28}
-                                color="#16A34A"
-                            />
-                        </View>
-
-                        <Text style={styles.cardTitle}>Eventos</Text>
-                        <Text style={styles.cardNumber}>
-                            {eventosActivos}
+                        <Text style={styles.subtitle}>
+                            {usuario?.rol || 'ADMINISTRADOR'}
                         </Text>
                     </View>
 
-                    {/* ENTRADAS */}
-                    <View style={styles.card}>
-                        <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
-                            <Ionicons
-                                name="ticket-outline"
-                                size={28}
-                                color="#2563EB"
-                            />
+                    <View style={styles.grid}>
+
+                        {/* EVENTOS */}
+                        <View style={styles.card}>
+                            <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
+                                <MaterialCommunityIcons
+                                    name="calendar-check"
+                                    size={28}
+                                    color="#16A34A"
+                                />
+                            </View>
+
+                            <Text style={styles.cardTitle}>Eventos</Text>
+                            <Text style={styles.cardNumber}>
+                                {eventosActivos}
+                            </Text>
                         </View>
 
-                        <Text style={styles.cardTitle}>Entradas Vendidas</Text>
-                        <Text style={styles.cardNumber}>
-                            {entradasVendidas}
-                        </Text>
-                    </View>
+                        {/* ENTRADAS */}
+                        <View style={styles.card}>
+                            <View style={[styles.iconCircle, { backgroundColor: '#DBEAFE' }]}>
+                                <Ionicons
+                                    name="ticket-outline"
+                                    size={28}
+                                    color="#2563EB"
+                                />
+                            </View>
 
-                    {/* USUARIOS */}
-                    <View style={styles.card}>
-                        <View style={[styles.iconCircle, { backgroundColor: '#EDE9FE' }]}>
-                            <Ionicons
-                                name="people-outline"
-                                size={28}
-                                color="#7C3AED"
-                            />
+                            <Text style={styles.cardTitle}>Entradas Vendidas</Text>
+                            <Text style={styles.cardNumber}>
+                                {entradasVendidas}
+                            </Text>
                         </View>
 
-                        <Text style={styles.cardTitle}>
-                            Usuarios
-                        </Text>
-                        <Text style={styles.cardNumber}>
-                            {usuariosRegistrados}
-                        </Text>
-                    </View>
+                        {/* USUARIOS */}
+                        <View style={styles.card}>
+                            <View style={[styles.iconCircle, { backgroundColor: '#EDE9FE' }]}>
+                                <Ionicons
+                                    name="people-outline"
+                                    size={28}
+                                    color="#7C3AED"
+                                />
+                            </View>
 
-                    {/* TRANSFERENCIAS */}
-                    <View style={styles.card}>
-                        <View style={[styles.iconCircle, { backgroundColor: '#FFEDD5' }]}>
-                            <Ionicons
-                                name="swap-horizontal"
-                                size={28}
-                                color="#EA580C"
-                            />
+                            <Text style={styles.cardTitle}>
+                                Usuarios
+                            </Text>
+                            <Text style={styles.cardNumber}>
+                                {usuariosRegistrados}
+                            </Text>
                         </View>
 
-                        <Text style={styles.cardTitle}>
-                            Transferencias
-                        </Text>
-                        <Text style={styles.cardNumber}>
-                            {transferencias}
-                        </Text>
+                        {/* TRANSFERENCIAS */}
+                        <View style={styles.card}>
+                            <View style={[styles.iconCircle, { backgroundColor: '#FFEDD5' }]}>
+                                <Ionicons
+                                    name="swap-horizontal"
+                                    size={28}
+                                    color="#EA580C"
+                                />
+                            </View>
+
+                            <Text style={styles.cardTitle}>
+                                Transferencias
+                            </Text>
+                            <Text style={styles.cardNumber}>
+                                {transferencias}
+                            </Text>
+                        </View>
                     </View>
                 </View>
             </View>
@@ -137,8 +139,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#051F3B',
         paddingTop: 40,
         paddingHorizontal: 20,
+        alignItems: 'center',
     },
-
+    inner: {
+        width: '100%',
+        maxWidth: 420,
+        flex: 1,
+    },
     logo: {
         width: '60%',
         height: 120,
@@ -165,7 +172,6 @@ const styles = StyleSheet.create({
     },
 
     grid: {
-        flex: 1,
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
@@ -173,8 +179,9 @@ const styles = StyleSheet.create({
     },
 
     card: {
-        width: '47%',
-        aspectRatio: 0.9, // mantiene proporción automáticamente
+        width: '48%',
+        maxWidth: 200, // 👈 evita que explote en desktop
+        aspectRatio: 0.9,
         backgroundColor: '#FFFFFF',
         borderRadius: 22,
         padding: 18,

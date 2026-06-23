@@ -17,7 +17,7 @@ export default function MisEntradas() {
     const router = useRouter();
 
     useEffect(() => {
-        EntradaService.misEntradas().then(setEntradas).catch(() => {});
+        EntradaService.misEntradas().then(setEntradas).catch(() => { });
     }, []);
 
     const entradasActivas = entradas.filter(e => e.estado !== 'CONSUMIDA');
@@ -64,86 +64,87 @@ export default function MisEntradas() {
             </View>
 
             <Screen backgroundColor="#051F3B">
-
-                {tab === 'proximos' &&
-                    (entradasActivas.length === 0 ? (
-                        <Text style={styles.emptyText}>
-                            No tienes entradas próximas
-                        </Text>
-                    ) : (
-                        entradasActivas.map(e => (
-                            <TouchableOpacity
-                                key={e.id}
-                                style={styles.ticketCard}
-                                onPress={() =>
-                                    router.push({
-                                        pathname: '/entrada',
-                                        params: {
-                                            id: e.id.toString(),
-                                            equipoLocal: e.equipoLocal,
-                                            equipoVisitante: e.equipoVisitante,
-                                            fecha: e.fechaEvento,
-                                            time: e.horaEvento,
-                                            estadio: e.estadioNombre,
-                                            sector: e.sectorCodigo,
-                                            asiento: String(e.numeroAsiento),
-                                        },
-                                    })
-                                }
-                            >
-                                <View style={styles.cardHeader}>
-                                    <Text style={styles.badge}>PRÓXIMO</Text>
-                                </View>
-
-                                <Text style={styles.matchTitle}>
-                                    {e.equipoLocal} vs {e.equipoVisitante}
-                                </Text>
-
-                                <Text style={styles.info}>📅 {e.fechaEvento}</Text>
-                                <Text style={styles.info}>🕒 {e.horaEvento}</Text>
-                                <Text style={styles.info}>📍 {e.estadioNombre}</Text>
-
-                                <View style={styles.bottomRow}>
-                                    <View style={styles.status}>
-                                        <Text style={styles.statusText}>Activa</Text>
+                <View style={styles.content}>
+                    {tab === 'proximos' &&
+                        (entradasActivas.length === 0 ? (
+                            <Text style={styles.emptyText}>
+                                No tienes entradas próximas
+                            </Text>
+                        ) : (
+                            entradasActivas.map(e => (
+                                <TouchableOpacity
+                                    key={e.id}
+                                    style={styles.ticketCard}
+                                    onPress={() =>
+                                        router.push({
+                                            pathname: '/entrada',
+                                            params: {
+                                                id: e.id.toString(),
+                                                equipoLocal: e.equipoLocal,
+                                                equipoVisitante: e.equipoVisitante,
+                                                fecha: e.fechaEvento,
+                                                time: e.horaEvento,
+                                                estadio: e.estadioNombre,
+                                                sector: e.sectorCodigo,
+                                                asiento: String(e.numeroAsiento),
+                                            },
+                                        })
+                                    }
+                                >
+                                    <View style={styles.cardHeader}>
+                                        <Text style={styles.badge}>PRÓXIMO</Text>
                                     </View>
 
-                                    <Text style={styles.arrow}>›</Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))
-                    ))}
-                {tab === 'historial' &&
-                    (entradasUsadas.length === 0 ? (
-                        <Text style={styles.emptyText}>
-                            No tienes entradas usadas
-                        </Text>
-                    ) : (
-                        entradasUsadas.map(e => (
-                            <TouchableOpacity key={e.id} style={styles.ticketCard}>
-                                <Text style={styles.matchTitle}>
-                                    {e.equipoLocal} vs {e.equipoVisitante}
-                                </Text>
+                                    <Text style={styles.matchTitle}>
+                                        {e.equipoLocal} vs {e.equipoVisitante}
+                                    </Text>
 
-                                <Text style={styles.info}>📅 {e.fechaEvento}</Text>
-                                <Text style={styles.info}>🕒 {e.horaEvento}</Text>
-                                <Text style={styles.info}>📍 {e.estadioNombre}</Text>
+                                    <Text style={styles.info}>📅 {e.fechaEvento}</Text>
+                                    <Text style={styles.info}>🕒 {e.horaEvento}</Text>
+                                    <Text style={styles.info}>📍 {e.estadioNombre}</Text>
 
-                                <View style={styles.bottomRow}>
-                                    <View style={[styles.status, styles.usedStatus]}>
-                                        <Text
-                                            style={[
-                                                styles.statusText,
-                                                styles.usedStatusText,
-                                            ]}
-                                        >
-                                            Utilizada
-                                        </Text>
+                                    <View style={styles.bottomRow}>
+                                        <View style={styles.status}>
+                                            <Text style={styles.statusText}>Activa</Text>
+                                        </View>
+
+                                        <Text style={styles.arrow}>›</Text>
                                     </View>
-                                </View>
-                            </TouchableOpacity>
-                        ))
-                    ))}
+                                </TouchableOpacity>
+                            ))
+                        ))}
+                    {tab === 'historial' &&
+                        (entradasUsadas.length === 0 ? (
+                            <Text style={styles.emptyText}>
+                                No tienes entradas usadas
+                            </Text>
+                        ) : (
+                            entradasUsadas.map(e => (
+                                <TouchableOpacity key={e.id} style={styles.ticketCard}>
+                                    <Text style={styles.matchTitle}>
+                                        {e.equipoLocal} vs {e.equipoVisitante}
+                                    </Text>
+
+                                    <Text style={styles.info}>📅 {e.fechaEvento}</Text>
+                                    <Text style={styles.info}>🕒 {e.horaEvento}</Text>
+                                    <Text style={styles.info}>📍 {e.estadioNombre}</Text>
+
+                                    <View style={styles.bottomRow}>
+                                        <View style={[styles.status, styles.usedStatus]}>
+                                            <Text
+                                                style={[
+                                                    styles.statusText,
+                                                    styles.usedStatusText,
+                                                ]}
+                                            >
+                                                Utilizada
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))
+                        ))}
+                </View>
             </Screen>
         </View>
     );
@@ -224,8 +225,8 @@ const styles = StyleSheet.create({
     ticketCard: {
         backgroundColor: '#FFFFFF',
         borderRadius: 20,
-        padding: 18,
-        marginBottom: 16,
+        padding: 16,
+        marginBottom: 14,
         elevation: 3,
         shadowColor: '#000',
         shadowOpacity: 0.08,
@@ -249,10 +250,10 @@ const styles = StyleSheet.create({
     },
 
     matchTitle: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#0F172A',
-        marginBottom: 12,
+        marginBottom: 10,
     },
 
     info: {
