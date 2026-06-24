@@ -22,77 +22,6 @@ export default function PagoAprobado() {
 
     const primeraEntradaId = Number(entradaIds?.split(',')[0]);
 
-    const descargarPDF = async () => {
-        if (!primeraEntradaId) return;
-
-        const entrada = await QRService.generar(primeraEntradaId);
-        const qrValue = entrada.codigoQR ?? `entrada-${primeraEntradaId}`;
-
-        const html = `
-    <html>
-      <body style="margin:0; padding:0; background:#051F3B; font-family:Arial;">
-
-        <div style="
-          display:flex;
-          justify-content:center;
-          padding-top:60px;
-        ">
-
-          <!-- CARD -->
-          <div style="
-            width:320px;
-            background:#fff;
-            border-radius:25px;
-            overflow:hidden;
-            text-align:center;
-          ">
-
-            <!-- CONTENIDO -->
-            <div style="padding:0 20px 20px 20px;">
-
-              <h2 style="font-size:18px; margin:10px 0;">
-                ${match}
-              </h2>
-
-              <p style="font-size:14px; margin:5px 0; color:#444;">
-                ${date} • ${time}
-              </p>
-
-              <p style="font-size:14px; margin:5px 0; color:#444;">
-                Estadio: ${estadio}
-              </p>
-
-              <p style="font-size:14px; margin:5px 0; color:#444;">
-                Sector ${sector} • Entradas ${cantidad}
-              </p>
-
-              <hr style="margin:15px 0;" />
-
-              <!-- QR -->
-              <div style="margin:15px 0;">
-                <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(qrValue)}"
-                />
-              </div>
-
-              <p style="font-size:11px; color:#777;">
-                Entrada oficial - QR válido para ingreso
-              </p>
-
-            </div>
-          </div>
-
-        </div>
-      </body>
-    </html>
-    `;
-
-        const { uri } = await Print.printToFileAsync({
-            html,
-        });
-
-        await Sharing.shareAsync(uri);
-    };
     return (
         <Screen>
             <View style={styles.container}>
@@ -129,68 +58,24 @@ export default function PagoAprobado() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-
-                <View style={styles.footer}>
-                    <TouchableOpacity
-                        style={styles.footerButton}
-                        onPress={() => {
-                            if (!primeraEntradaId) return;
-
-                            router.push({
-                                pathname: '/transfer',
-                                params: {
-                                    id: String(primeraEntradaId),
-                                    match,
-                                    date,
-                                    time,
-                                    estadio,
-                                    sector,
-                                },
-                            });
-                        }}
-                    >
-                        <FontAwesome6
-                            name="share-nodes"
-                            size={18}
-                            color="#1958D0"
-                        />
-
-                        <Text style={styles.footerButtonText}>
-                            Transferir
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.footerButton}
-                        onPress={descargarPDF}
-                    >
-                        <Text style={styles.footerButtonText}>
-                            Descargar
-                        </Text>
-
-                        <FontAwesome6
-                            name="download"
-                            size={18}
-                            color="#1958D0"
-                        />
-                    </TouchableOpacity>
-                </View>
             </View>
         </Screen>
     );
 }
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        minHeight: '100%',
         backgroundColor: '#FFFFFF',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 60,
+        paddingHorizontal: 20,
     },
 
     successContainer: {
         alignItems: 'center',
-        paddingHorizontal: 30,
-        marginTop: 60,
+        justifyContent: 'center',
+        flex: 1,
     },
 
     iconContainer: {
@@ -215,12 +100,13 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#6B7280',
         textAlign: 'center',
+        paddingHorizontal: 10,
     },
 
     actionsContainer: {
+        width: '100%',
         alignItems: 'center',
         gap: 16,
-        marginTop: 105,
     },
 
     primaryButton: {
@@ -235,7 +121,7 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: '#FFFFFF',
         fontSize: 25,
-        fontWeight: 'regular',
+        fontWeight: '400',
     },
 
     secondaryButton: {
@@ -248,38 +134,6 @@ const styles = StyleSheet.create({
     secondaryButtonText: {
         color: '#1958D0',
         fontSize: 25,
-        fontWeight: 'regular',
-    },
-
-    footer: {
-        marginTop: 'auto',
-        height: 115,
-        backgroundColor: '#D9D9D9',
-
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-
-        gap: 12,
-    },
-
-    footerButton: {
-        width: 150,
-        height: 48,
-
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-
-        gap: 8,
-    },
-
-    footerButtonText: {
-        color: '#1958D0',
-        fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '400',
     },
 });
