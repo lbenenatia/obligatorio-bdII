@@ -24,9 +24,9 @@ CREATE TABLE IF NOT EXISTS usuario (
     documento_tipo VARCHAR(50) NOT NULL,
     direccion_id INTEGER,
     tipo_usuario VARCHAR(20) NOT NULL, -- ADMINISTRADOR, FUNCIONARIO, GENERAL
-    FOREIGN KEY (direccion_id) REFERENCES direccion(nro_direccion) ON DELETE SET NULL
+    FOREIGN KEY (direccion_id) REFERENCES direccion(nro_direccion) ON DELETE SET NULL,
     UNIQUE (email, nro_documento),
-    CONSTRAINT email_format CHECK (email LIKE '%@%'),
+    CONSTRAINT email_format CHECK (email LIKE '%@%')
 );
 
 -- Tabla ADMINISTRADOR (Herencia)
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS sector (
 
 -- Tabla DISPOSITIVO
 CREATE TABLE IF NOT EXISTS dispositivo (
-    dispositivo_id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     autorizado BOOLEAN DEFAULT FALSE,
     funcionario_id INTEGER,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -110,13 +110,26 @@ CREATE TABLE IF NOT EXISTS dispositivo (
 -- Tabla FUNCIONARIO_SECTOR (asignacion de un funcionario a sector(es); el estadio se deriva
 -- transitivamente via sector.estadio_id, ya que sector es entidad debil de estadio)
 CREATE TABLE IF NOT EXISTS funcionario_sector (
-    id SERIAL PRIMARY KEY,
     funcionario_id INTEGER NOT NULL,
     sector_id INTEGER NOT NULL,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY (funcionario_id, sector_id),
     FOREIGN KEY (funcionario_id) REFERENCES funcionario(id) ON DELETE CASCADE,
     FOREIGN KEY (sector_id) REFERENCES sector(id) ON DELETE CASCADE,
-    UNIQUE(funcionario_id, sector_id, estadio_id)
+    UNIQUE(funcionario_id, sector_id)
+);
+
+-- Tabla COMPRA
+CREATE TABLE IF NOT EXISTS compra (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL,
+    fecha_compra TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    cant_entradas INTEGER NOT NULL,
+    monto_total DECIMAL(12, 2) NOT NULL,
+    costo DECIMAL(12, 2) NOT NULL,
+    estado VARCHAR(50) DEFAULT 'PENDIENTE', -- PENDIENTE, CONFIRMADA, PAGA
+    FOREIGN KEY (usuario_id) REFERENCES general(id) ON DELETE CASCADE,
+    CONSTRAINT cant_entradas_valida CHECK (cant_entradas > 0 AND cant_entradas < 6)
 );
 
 -- Tabla ENTRADA
@@ -136,7 +149,7 @@ CREATE TABLE IF NOT EXISTS entrada (
     fecha_consumo TIMESTAMP,
     validado_por INTEGER, -- Funcionario que valida
     dispositivo_id INTEGER,
-    propietario_actual_email INTEGER, -- General dueño actual (cambia al transferir)
+    propietario_actual_email VARCHAR(100), -- General dueño actual (cambia al transferir)
     FOREIGN KEY (evento_id) REFERENCES evento(id) ON DELETE CASCADE,
     FOREIGN KEY (sector_id) REFERENCES sector(id) ON DELETE RESTRICT,
     FOREIGN KEY (compra_id) REFERENCES compra(id) ON DELETE CASCADE,
@@ -144,19 +157,6 @@ CREATE TABLE IF NOT EXISTS entrada (
     FOREIGN KEY (dispositivo_id) REFERENCES dispositivo(id) ON DELETE SET NULL,
     FOREIGN KEY (propietario_actual_email) REFERENCES usuario(email) ON DELETE SET NULL,
     CONSTRAINT estado_valido CHECK (estado IN ('DISPONIBLE', 'VENDIDA', 'TRANSFERIDA', 'CONSUMIDA'))
-);
-
--- Tabla COMPRA
-CREATE TABLE IF NOT EXISTS compra (
-    id SERIAL PRIMARY KEY,
-    usuario_id INTEGER NOT NULL,
-    fecha_compra TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    cant_entradas INTEGER NOT NULL,
-    monto_total DECIMAL(12, 2) NOT NULL,
-    costo DECIMAL(12, 2) NOT NULL,
-    estado VARCHAR(50) DEFAULT 'PENDIENTE', -- PENDIENTE, CONFIRMADA, PAGA
-    FOREIGN KEY (usuario_id) REFERENCES general(id) ON DELETE CASCADE,
-    CONSTRAINT cant_entradas_valida CHECK (cant_entradas > 0 AND cant_entradas < 6)
 );
 
 -- Tabla TRANSFERENCIA
@@ -192,7 +192,7 @@ CREATE INDEX IF NOT EXISTS idx_entrada_codigo_qr ON entrada(codigo_qr);
 
 -- Comentarios
 COMMENT ON COLUMN usuario.tipo_usuario IS 'ADMINISTRADOR, FUNCIONARIO, GENERAL';
-COMMENT ON COLUMN compra.comision IS 'Porcentaje de comisión aplicado al costo';
+COMMENT ON COLUMN entrada.comision IS 'Porcentaje de comisión aplicado al costo';
 COMMENT ON COLUMN transferencia.aprobacion IS 'True: aprobada por administrador, False: pendiente';
 COMMENT ON COLUMN entrada.codigo_qr IS 'Código QR vigente; se regenera cada ~30s mientras la app está en primer plano';
 COMMENT ON COLUMN entrada.consumida IS 'True: ya fue escaneada y validada';
