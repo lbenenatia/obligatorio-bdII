@@ -1,11 +1,12 @@
 package com.mundial2026.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mundial2026.entity.usuario.Funcionario;
-import com.mundial2026.entity.usuario.General;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,13 +28,21 @@ public class Entrada {
     @JoinColumn(name = "sector_id", nullable = false)
     private Sector sector;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "compra_id")
+    @JsonIgnore
+    private Compra compra;
+
     private Integer numeroAsiento;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal costo;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal comision = new BigDecimal("10");
 
     @Column(nullable = false, length = 50)
     private String estado = "DISPONIBLE"; // DISPONIBLE, VENDIDA, TRANSFERIDA, CONSUMIDA
-
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime creadoEn = LocalDateTime.now();
 
     // QR: se regenera cada ~30s mientras la app está en primer plano
     @Column(name = "codigo_qr", columnDefinition = "TEXT")
@@ -55,7 +64,6 @@ public class Entrada {
     @JoinColumn(name = "dispositivo_id")
     private Dispositivo dispositivo;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "propietario_actual_id")
-    private General propietarioActual;
+    @Column(name = "propietario_actual_email", length = 100)
+    private String propietarioActualEmail;
 }

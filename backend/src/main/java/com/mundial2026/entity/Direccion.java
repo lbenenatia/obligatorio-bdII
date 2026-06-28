@@ -14,13 +14,14 @@ public class Direccion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_direccion")
     private Integer id;
+
+    @Column(name = "nro_direccion")
+    private Integer nroDireccion;
 
     @Column(nullable = false, length = 100)
     private String calle;
-
-    @Column(nullable = false)
-    private Integer nroDireccion;
 
     @Column(nullable = false, length = 100)
     private String localidad;

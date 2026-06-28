@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "estadio")
@@ -22,7 +21,4 @@ public class Estadio {
     
     @Column(nullable = false, length = 255)
     private String ubicacion;
-    
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime creadoEn = LocalDateTime.now();
 }

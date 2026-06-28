@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface DispositivoRepository extends JpaRepository<Dispositivo, Integer> {
-    Optional<Dispositivo> findByDispositivoId(String dispositivoId);
+    Optional<Dispositivo> findByNroVinculacion(String nroVinculacion);
     List<Dispositivo> findByAutorizado(Boolean autorizado);
     List<Dispositivo> findByFuncionario(Funcionario funcionario);
 }

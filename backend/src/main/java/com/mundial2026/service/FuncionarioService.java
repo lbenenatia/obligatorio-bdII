@@ -1,5 +1,6 @@
 package com.mundial2026.service;
 
+import com.mundial2026.dto.FuncionarioResumenDTO;
 import com.mundial2026.entity.Dispositivo;
 import com.mundial2026.entity.Estadio;
 import com.mundial2026.entity.Evento;
@@ -41,12 +42,29 @@ public class FuncionarioService {
         return obtenerSectoresAsignados(obtenerFuncionarioPorEmail(email));
     }
 
+    public List<Sector> obtenerSectoresAsignados(Integer funcionarioId) {
+        return obtenerSectoresAsignados(obtenerFuncionario(funcionarioId));
+    }
+
     public Evento obtenerEventoActual(String email) {
         return obtenerEventoActual(obtenerFuncionarioPorEmail(email));
     }
 
     public Dispositivo obtenerDispositivo(String email) {
         return obtenerDispositivo(obtenerFuncionarioPorEmail(email));
+    }
+
+    public List<FuncionarioResumenDTO> listarFuncionarios() {
+        return funcionarioRepository.findAll().stream()
+                .map(funcionario -> {
+                    Dispositivo dispositivo = obtenerDispositivo(funcionario);
+                    return new FuncionarioResumenDTO(
+                            funcionario.getId(), funcionario.getNombre(), funcionario.getApellido(),
+                            funcionario.getEmail(), funcionario.getLegajo(),
+                            dispositivo == null ? null : dispositivo.getNroVinculacion(),
+                            dispositivo != null && Boolean.TRUE.equals(dispositivo.getAutorizado()));
+                })
+                .collect(Collectors.toList());
     }
 
     private List<Sector> obtenerSectoresAsignados(Funcionario funcionario) {
@@ -107,12 +125,23 @@ public class FuncionarioService {
                 .ifPresent(funcionarioSectorRepository::delete);
     }
 
-    public Dispositivo autorizarDispositivo(Integer funcionarioId, String dispositivoId) {
+    public Dispositivo autorizarDispositivo(Integer funcionarioId, String nroVinculacion) {
         Funcionario funcionario = obtenerFuncionario(funcionarioId);
 
-        Dispositivo dispositivo = dispositivoRepository.findByDispositivoId(dispositivoId)
+        // Un funcionario solo puede tener un dispositivo autorizado a la vez: si ya tenia
+        // otro vinculado (ej. cambio de celular), hay que desvincularlo, sino "mi-dispositivo"
+        // puede seguir devolviendo el viejo en vez del que se esta autorizando ahora.
+        dispositivoRepository.findByFuncionario(funcionario).stream()
+                .filter(d -> !d.getNroVinculacion().equals(nroVinculacion))
+                .forEach(d -> {
+                    d.setAutorizado(false);
+                    d.setFuncionario(null);
+                    dispositivoRepository.save(d);
+                });
+
+        Dispositivo dispositivo = dispositivoRepository.findByNroVinculacion(nroVinculacion)
                 .orElseGet(Dispositivo::new);
-        dispositivo.setDispositivoId(dispositivoId);
+        dispositivo.setNroVinculacion(nroVinculacion);
         dispositivo.setFuncionario(funcionario);
         dispositivo.setAutorizado(true);
         return dispositivoRepository.save(dispositivo);

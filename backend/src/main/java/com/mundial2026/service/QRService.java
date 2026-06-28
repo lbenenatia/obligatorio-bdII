@@ -1,9 +1,12 @@
 package com.mundial2026.service;
 
+import com.mundial2026.entity.Dispositivo;
 import com.mundial2026.entity.Entrada;
 import com.mundial2026.entity.usuario.Funcionario;
+import com.mundial2026.repository.DispositivoRepository;
 import com.mundial2026.repository.EntradaRepository;
 import com.mundial2026.repository.FuncionarioRepository;
+import com.mundial2026.exception.DispositivoNoAutorizadoException;
 import com.mundial2026.exception.InvalidOperationException;
 import com.mundial2026.exception.ResourceNotFoundException;
 import com.google.zxing.BarcodeFormat;
@@ -26,6 +29,9 @@ public class QRService {
     @Autowired
     private FuncionarioRepository funcionarioRepository;
 
+    @Autowired
+    private DispositivoRepository dispositivoRepository;
+
     public Entrada generarQR(Integer entradaId) {
         Entrada entrada = entradaRepository.findById(entradaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Entrada no encontrada"));
@@ -47,7 +53,7 @@ public class QRService {
         return generarImagenQRBase64(entrada.getCodigoQR());
     }
 
-    public Entrada consumirQR(String codigoQR, String funcionarioEmail) {
+    public Entrada consumirQR(String codigoQR, String funcionarioEmail, String nroVinculacion) {
         Entrada entrada = entradaRepository.findByCodigoQR(codigoQR)
                 .orElseThrow(() -> new ResourceNotFoundException("QR no encontrado"));
 
@@ -57,6 +63,15 @@ public class QRService {
 
         Funcionario funcionario = funcionarioRepository.findByEmail(funcionarioEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionario no encontrado"));
+
+        Dispositivo dispositivo = dispositivoRepository.findByNroVinculacion(nroVinculacion).orElse(null);
+        boolean dispositivoValido = dispositivo != null
+                && Boolean.TRUE.equals(dispositivo.getAutorizado())
+                && dispositivo.getFuncionario() != null
+                && dispositivo.getFuncionario().getId().equals(funcionario.getId());
+        if (!dispositivoValido) {
+            throw new DispositivoNoAutorizadoException("El dispositivo no está autorizado para este funcionario");
+        }
 
         entrada.setConsumida(true);
         entrada.setFechaConsumo(LocalDateTime.now());

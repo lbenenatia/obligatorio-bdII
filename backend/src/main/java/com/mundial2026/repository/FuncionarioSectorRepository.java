@@ -1,6 +1,7 @@
 package com.mundial2026.repository;
 
 import com.mundial2026.entity.FuncionarioSector;
+import com.mundial2026.entity.FuncionarioSectorId;
 import com.mundial2026.entity.Sector;
 import com.mundial2026.entity.usuario.Funcionario;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FuncionarioSectorRepository extends JpaRepository<FuncionarioSector, Integer> {
+public interface FuncionarioSectorRepository extends JpaRepository<FuncionarioSector, FuncionarioSectorId> {
     List<FuncionarioSector> findByFuncionario(Funcionario funcionario);
     Optional<FuncionarioSector> findByFuncionarioAndSector(Funcionario funcionario, Sector sector);
 }

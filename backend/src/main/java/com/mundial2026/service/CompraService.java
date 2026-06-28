@@ -8,6 +8,7 @@ import com.mundial2026.exception.InvalidOperationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,9 +31,6 @@ public class CompraService {
     @Autowired
     private GeneralRepository generalRepository;
 
-    @Autowired
-    private EventoSectorRepository eventoSectorRepository;
-
     public Compra crearCompra(Integer usuarioId, Integer eventoId, Character codigoSector, Integer cantEntradas) {
         if (cantEntradas <= 0 || cantEntradas >= 6) {
             throw new InvalidOperationException("La cantidad de entradas debe estar entre 1 y 5");
@@ -40,6 +38,11 @@ public class CompraService {
 
         Evento evento = eventoRepository.findById(eventoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento no encontrado"));
+
+        LocalDateTime fechaHoraEvento = LocalDateTime.of(evento.getFechaEvento(), evento.getHoraEvento());
+        if (fechaHoraEvento.isBefore(LocalDateTime.now())) {
+            throw new InvalidOperationException("No se pueden comprar entradas de un evento que ya pasó");
+        }
 
         Sector sector = sectorRepository.findByEstadioAndCodigo(evento.getEstadio(), codigoSector)
                 .orElseThrow(() -> new ResourceNotFoundException("Sector no encontrado"));
@@ -53,14 +56,16 @@ public class CompraService {
         General comprador = generalRepository.findById(usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
+        if (!Boolean.TRUE.equals(comprador.getVerificacion())) {
+            throw new InvalidOperationException("Debés verificar tu cuenta antes de poder comprar entradas");
+        }
+
         // Seleccionar entradas del sector
         Set<Entrada> entradasSeleccionadas = new HashSet<>();
         int contador = 0;
         for (Entrada entrada : entradasDisponibles) {
             if (entrada.getSector().getId().equals(sector.getId()) && contador < cantEntradas) {
                 entradasSeleccionadas.add(entrada);
-                entrada.setEstado("VENDIDA");
-                entrada.setPropietarioActual(comprador);
                 contador++;
             }
         }
@@ -69,24 +74,26 @@ public class CompraService {
             throw new InvalidOperationException("No hay suficientes entradas en este sector");
         }
 
-        // Calcular costo (precio efectivo del sector para este evento puntual)
-        BigDecimal precioPorEntrada = eventoSectorRepository.findByEventoAndSector(evento, sector)
-                .map(EventoSector::getPrecio)
-                .orElse(sector.getPrecio());
-        BigDecimal costo = precioPorEntrada.multiply(new BigDecimal(cantEntradas));
-        BigDecimal comision = precioPorEntrada.multiply(new BigDecimal("0.10")); // 10%
-        BigDecimal montoTotal = costo.multiply(new BigDecimal(String.valueOf(cantEntradas)));
+        // Costo de la entrada, ya fijado al generarse desde el precio del sector
+        BigDecimal costoPorEntrada = entradasSeleccionadas.iterator().next().getCosto();
+        BigDecimal comision = costoPorEntrada.multiply(new BigDecimal("0.10")); // 10%
+        BigDecimal montoTotal = costoPorEntrada.multiply(new BigDecimal(cantEntradas));
 
         Compra compra = new Compra();
         compra.setUsuario(comprador);
         compra.setCantEntradas(cantEntradas);
         compra.setMontoTotal(montoTotal);
-        compra.setCosto(costo);
-        compra.setComision(comision);
-        compra.setEntradas(entradasSeleccionadas);
+        compra = compraRepository.save(compra);
 
+        for (Entrada entrada : entradasSeleccionadas) {
+            entrada.setEstado("VENDIDA");
+            entrada.setPropietarioActualEmail(comprador.getEmail());
+            entrada.setComision(comision);
+            entrada.setCompra(compra);
+        }
         entradaRepository.saveAll(entradasSeleccionadas);
-        return compraRepository.save(compra);
+
+        return compra;
     }
 
     public List<Compra> listarTodas() {

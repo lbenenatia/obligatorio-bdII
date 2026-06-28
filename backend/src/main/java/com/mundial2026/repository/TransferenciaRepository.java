@@ -1,5 +1,6 @@
 package com.mundial2026.repository;
 
+import com.mundial2026.entity.Entrada;
 import com.mundial2026.entity.Transferencia;
 import com.mundial2026.entity.usuario.General;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,8 @@ import java.util.List;
 public interface TransferenciaRepository extends JpaRepository<Transferencia, Integer> {
     List<Transferencia> findByRemitente(General remitente);
     List<Transferencia> findByDestinatario(General destinatario);
-    List<Transferencia> findByRemitenteAndAprobacion(General remitente, Boolean aprobacion);
-    List<Transferencia> findByAprobacionAndRemitenteOrDestinatario(Boolean aprobacion, General remitente, General destinatario);
+    long countByEntradaAndAprobacionTrue(Entrada entrada);
+    boolean existsByEntradaAndAprobacionIsNull(Entrada entrada);
+    List<Transferencia> findByDestinatarioAndAprobacionIsNull(General destinatario);
+    List<Transferencia> findByRemitenteOrDestinatarioOrderByFechaTransferenciaDesc(General remitente, General destinatario);
 }

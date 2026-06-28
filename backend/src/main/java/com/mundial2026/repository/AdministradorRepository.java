@@ -7,5 +7,5 @@ import java.util.Optional;
 
 @Repository
 public interface AdministradorRepository extends JpaRepository<Administrador, Integer> {
-    Optional<Administrador> findByLegajo(String legajo);
+    Optional<Administrador> findByEmail(String email);
 }

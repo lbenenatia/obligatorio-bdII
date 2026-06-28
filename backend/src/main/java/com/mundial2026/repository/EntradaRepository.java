@@ -4,7 +4,6 @@ import com.mundial2026.entity.Entrada;
 import com.mundial2026.entity.Evento;
 import com.mundial2026.entity.Sector;
 import com.mundial2026.entity.usuario.Funcionario;
-import com.mundial2026.entity.usuario.General;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
@@ -18,6 +17,6 @@ public interface EntradaRepository extends JpaRepository<Entrada, Integer> {
     long countByEventoAndEstadoNot(Evento evento, String estado);
     long countByEventoAndSectorAndEstado(Evento evento, Sector sector, String estado);
     Optional<Entrada> findByCodigoQR(String codigoQR);
-    List<Entrada> findByPropietarioActual(General propietarioActual);
+    List<Entrada> findByPropietarioActualEmail(String propietarioActualEmail);
     List<Entrada> findByValidadoPor(Funcionario validadoPor);
 }

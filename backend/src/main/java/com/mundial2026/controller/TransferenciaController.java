@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/transferencias")
@@ -26,23 +27,46 @@ public class TransferenciaController {
     private UsuarioRepository usuarioRepository;
 
     @PostMapping
-    public ResponseEntity<TransferenciaDTO> crear(@RequestBody TransferenciaRequest request) {
+    public ResponseEntity<List<TransferenciaDTO>> crear(@RequestBody TransferenciaRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         General remitente = obtenerGeneralPorEmail(email);
         General destinatario = obtenerGeneralPorEmail(request.getDestinatarioEmail());
 
-        var transferencia = transferenciaService.crearTransferencia(
+        var transferencias = transferenciaService.crearTransferencia(
                 remitente.getId(),
                 destinatario.getId(),
                 request.getEntradaIds().size(),
                 request.getEntradaIds());
 
-        return ResponseEntity.ok(transferenciaService.toDto(transferencia));
+        return ResponseEntity.ok(transferencias.stream()
+                .map(transferenciaService::toDto)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping
     public ResponseEntity<List<TransferenciaDTO>> listarTodas() {
         return ResponseEntity.ok(transferenciaService.listarTodas());
+    }
+
+    @GetMapping("/mias")
+    public ResponseEntity<List<TransferenciaDTO>> misTransferencias() {
+        return ResponseEntity.ok(transferenciaService.misTransferencias(emailAutenticado()));
+    }
+
+    @PostMapping("/{id}/aceptar")
+    public ResponseEntity<TransferenciaDTO> aceptar(@PathVariable Integer id) {
+        var transferencia = transferenciaService.aceptarTransferencia(id, emailAutenticado());
+        return ResponseEntity.ok(transferenciaService.toDto(transferencia));
+    }
+
+    @PostMapping("/{id}/rechazar")
+    public ResponseEntity<TransferenciaDTO> rechazar(@PathVariable Integer id) {
+        var transferencia = transferenciaService.rechazarTransferencia(id, emailAutenticado());
+        return ResponseEntity.ok(transferenciaService.toDto(transferencia));
+    }
+
+    private String emailAutenticado() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     private General obtenerGeneralPorEmail(String email) {

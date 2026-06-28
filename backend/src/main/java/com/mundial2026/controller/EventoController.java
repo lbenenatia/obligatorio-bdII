@@ -6,6 +6,7 @@ import com.mundial2026.entity.Evento;
 import com.mundial2026.service.EventoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class EventoController {
 
     @PostMapping
     public ResponseEntity<Evento> crear(@RequestBody CrearEventoRequest request) {
-        return ResponseEntity.ok(eventoService.crearEvento(request));
+        return ResponseEntity.ok(eventoService.crearEvento(request, emailAutenticado()));
     }
 
     @PutMapping("/{id}")
@@ -53,20 +54,7 @@ public class EventoController {
         return ResponseEntity.ok(eventoService.obtenerPorEstadio(estadioId));
     }
 
-    @GetMapping("/pendientes")
-    public ResponseEntity<List<Evento>> obtenerPendientes() {
-        return ResponseEntity.ok(eventoService.obtenerEventosPendientes());
-    }
-
-    @PostMapping("/{id}/aprobar")
-    public ResponseEntity<String> aprobar(@PathVariable Integer id) {
-        eventoService.aprobarEvento(id);
-        return ResponseEntity.ok("Evento aprobado correctamente");
-    }
-
-    @PostMapping("/{id}/cancelar")
-    public ResponseEntity<String> cancelar(@PathVariable Integer id) {
-        eventoService.cancelarEvento(id);
-        return ResponseEntity.ok("Evento cancelado correctamente");
+    private String emailAutenticado() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

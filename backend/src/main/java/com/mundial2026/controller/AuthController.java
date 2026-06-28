@@ -55,7 +55,6 @@ public class AuthController {
         general.setPaisDocumento(request.getPaisDocumento());
         general.setNroDocumento(request.getNroDocumento());
         general.setDocumentoTipo(request.getDocumentoTipo());
-        general.setTelefonos(request.getTelefonos());
 
         Direccion direccion = new Direccion();
         direccion.setCalle(request.getCalle());
@@ -65,7 +64,7 @@ public class AuthController {
         direccion.setCodigoPostal(request.getCodigoPostal());
         general.setDireccion(direccion);
 
-        General registrado = usuarioService.crearEspectador(general);
+        General registrado = usuarioService.crearEspectador(general, request.getTelefonos());
         return ResponseEntity.ok("Espectador registrado exitosamente con ID: " + registrado.getId());
     }
 

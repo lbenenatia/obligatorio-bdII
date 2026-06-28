@@ -77,15 +77,18 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/transferencias").hasRole("GENERAL")
                 .requestMatchers(HttpMethod.GET, "/transferencias").hasRole("ADMINISTRADOR")
 
-                // Usuarios: buscar (para transferir) es de cualquier autenticado; contar es admin
-                .requestMatchers(HttpMethod.GET, "/usuarios/count").hasRole("ADMINISTRADOR")
+                // Usuarios: buscar (para transferir) es de cualquier autenticado; contar/listar generales/
+                // verificar cuenta es admin
+                .requestMatchers(HttpMethod.GET, "/usuarios/count", "/usuarios/generales").hasRole("ADMINISTRADOR")
+                .requestMatchers(HttpMethod.PUT, "/usuarios/*/verificacion").hasRole("ADMINISTRADOR")
 
                 // Entradas validadas por el funcionario logueado
                 .requestMatchers(HttpMethod.GET, "/entradas/validadas/mias").hasRole("FUNCIONARIO")
 
                 // Funcionario: ver su propia asignacion (sector/evento/dispositivo) es del propio funcionario;
-                // asignar sector/dispositivo a un funcionario es solo del admin
+                // listar todos / asignar sector/dispositivo a un funcionario es solo del admin
                 .requestMatchers(HttpMethod.GET, "/funcionarios/mi-sector", "/funcionarios/mi-evento", "/funcionarios/mi-dispositivo").hasRole("FUNCIONARIO")
+                .requestMatchers(HttpMethod.GET, "/funcionarios", "/funcionarios/*/sectores").hasRole("ADMINISTRADOR")
                 .requestMatchers(HttpMethod.POST, "/funcionarios/*/sectores/*", "/funcionarios/*/dispositivo").hasRole("ADMINISTRADOR")
                 .requestMatchers(HttpMethod.DELETE, "/funcionarios/*/sectores/*", "/funcionarios/*/dispositivo").hasRole("ADMINISTRADOR")
 

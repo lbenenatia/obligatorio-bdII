@@ -13,6 +13,5 @@ public interface EventoRepository extends JpaRepository<Evento, Integer> {
     List<Evento> findByEstadio(Estadio estadio);
     List<Evento> findByEstadioInAndFechaEventoGreaterThanEqualOrderByFechaEventoAscHoraEventoAsc(List<Estadio> estadios, LocalDate fecha);
     List<Evento> findByFechaEvento(LocalDate fecha);
-    List<Evento> findByEstadoAndFechaEventoAfter(String estado, LocalDate fecha);
     Optional<Evento> findByEstadioAndFechaEventoAndHoraEvento(Estadio estadio, LocalDate fecha, java.time.LocalTime hora);
 }

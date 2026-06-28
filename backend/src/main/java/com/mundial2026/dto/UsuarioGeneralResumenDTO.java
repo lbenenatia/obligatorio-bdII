@@ -3,20 +3,17 @@ package com.mundial2026.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UsuarioPerfilDTO {
+public class UsuarioGeneralResumenDTO {
     private Integer id;
-    private String email;
     private String nombre;
     private String apellido;
-    private String rol;
-    private String paisDocumento;
+    private String email;
     private String nroDocumento;
-    private String documentoTipo;
-    private List<String> telefonos;
-    private DireccionDTO direccion;
+    private Boolean verificacion;
+    private LocalDateTime fechaRegistro;
 }

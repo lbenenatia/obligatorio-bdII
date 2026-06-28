@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SectorRequest {
+    private Integer id;
     private Character codigo;
     private Integer capMax;
     private BigDecimal precio;

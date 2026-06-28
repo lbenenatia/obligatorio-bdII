@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "sector")
@@ -30,7 +29,4 @@ public class Sector {
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
-    
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime creadoEn = LocalDateTime.now();
 }

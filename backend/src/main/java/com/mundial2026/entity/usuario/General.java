@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "general")
@@ -12,5 +13,8 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @DiscriminatorValue("GENERAL")
 public class General extends Usuario {
-    // Esta clase representa a los espectadores/usuarios generales
+
+    private Boolean verificacion = false;
+
+    private LocalDateTime fechaRegistro = LocalDateTime.now();
 }

@@ -1,11 +1,11 @@
 package com.mundial2026.entity;
 
+import com.mundial2026.entity.usuario.Administrador;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
@@ -14,11 +14,15 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Evento {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Administrador admin;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "estadio_id", nullable = false)
     private Estadio estadio;
@@ -36,10 +40,4 @@ public class Evento {
     
     @Column(nullable = false)
     private LocalTime horaEvento;
-    
-    @Column(nullable = false, length = 50)
-    private String estado = "PENDIENTE"; // PENDIENTE, APROBADO, CANCELADO
-    
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime creadoEn = LocalDateTime.now();
 }

@@ -2,6 +2,7 @@ package com.mundial2026.controller;
 
 import com.mundial2026.dto.EntradaDTO;
 import com.mundial2026.dto.ValidacionQRResponse;
+import com.mundial2026.exception.DispositivoNoAutorizadoException;
 import com.mundial2026.exception.InvalidOperationException;
 import com.mundial2026.exception.ResourceNotFoundException;
 import com.mundial2026.service.EntradaService;
@@ -33,15 +34,18 @@ public class QRController {
     }
 
     @PostMapping("/{codigoQR}/validar")
-    public ResponseEntity<ValidacionQRResponse> validarQR(@PathVariable String codigoQR) {
+    public ResponseEntity<ValidacionQRResponse> validarQR(
+            @PathVariable String codigoQR, @RequestParam String nroVinculacion) {
         String funcionarioEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
-            var entrada = qrService.consumirQR(codigoQR, funcionarioEmail);
+            var entrada = qrService.consumirQR(codigoQR, funcionarioEmail, nroVinculacion);
             return ResponseEntity.ok(new ValidacionQRResponse("VALIDA", entradaService.toDto(entrada)));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.ok(new ValidacionQRResponse("INVALIDA", null));
         } catch (InvalidOperationException e) {
             return ResponseEntity.ok(new ValidacionQRResponse("USADA", null));
+        } catch (DispositivoNoAutorizadoException e) {
+            return ResponseEntity.ok(new ValidacionQRResponse("DISPOSITIVO_NO_AUTORIZADO", null));
         }
     }
 

@@ -3,16 +3,21 @@ package com.mundial2026.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransferenciaDTO {
     private Integer id;
+    private Integer entradaId;
+    private String equipoLocal;
+    private String equipoVisitante;
+    private LocalDate fechaEvento;
+    private Character sectorCodigo;
     private String remitenteEmail;
     private String destinatarioEmail;
-    private Integer cantTransf;
-    private Boolean aprobacion;
-    private List<Integer> entradaIds;
+    private String estado; // PENDIENTE, ACEPTADA, RECHAZADA
+    private LocalDateTime fechaTransferencia;
 }

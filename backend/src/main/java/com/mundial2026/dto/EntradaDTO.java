@@ -26,4 +26,6 @@ public class EntradaDTO {
     private String codigoQR;
     private Boolean consumida;
     private LocalDateTime fechaConsumo;
+    private Integer transferenciaPendienteId;
+    private String remitenteEmail;
 }

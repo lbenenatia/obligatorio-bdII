@@ -4,6 +4,7 @@ import com.mundial2026.dto.EntradaDTO;
 import com.mundial2026.entity.Entrada;
 import com.mundial2026.entity.Evento;
 import com.mundial2026.entity.Sector;
+import com.mundial2026.entity.Transferencia;
 import com.mundial2026.entity.usuario.Funcionario;
 import com.mundial2026.entity.usuario.General;
 import com.mundial2026.entity.usuario.Usuario;
@@ -11,11 +12,12 @@ import com.mundial2026.exception.InvalidOperationException;
 import com.mundial2026.exception.ResourceNotFoundException;
 import com.mundial2026.exception.UnauthorizedException;
 import com.mundial2026.repository.EntradaRepository;
-import com.mundial2026.repository.EventoSectorRepository;
 import com.mundial2026.repository.FuncionarioRepository;
+import com.mundial2026.repository.TransferenciaRepository;
 import com.mundial2026.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,22 +34,28 @@ public class EntradaService {
     private FuncionarioRepository funcionarioRepository;
 
     @Autowired
-    private EventoSectorRepository eventoSectorRepository;
+    private TransferenciaRepository transferenciaRepository;
 
     public List<EntradaDTO> misEntradas(String email) {
         General usuario = obtenerGeneralPorEmail(email);
-        return entradaRepository.findByPropietarioActual(usuario).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+
+        List<EntradaDTO> resultado = new ArrayList<>();
+        entradaRepository.findByPropietarioActualEmail(email).forEach(
+                entrada -> resultado.add(toDto(entrada, null)));
+
+        transferenciaRepository.findByDestinatarioAndAprobacionIsNull(usuario).forEach(
+                transferencia -> resultado.add(toDto(transferencia.getEntrada(), transferencia)));
+
+        return resultado;
     }
 
     public EntradaDTO obtenerParaUsuario(Integer entradaId, String email) {
         Entrada entrada = entradaRepository.findById(entradaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Entrada no encontrada"));
-        General usuario = obtenerGeneralPorEmail(email);
+        obtenerGeneralPorEmail(email);
 
-        if (entrada.getPropietarioActual() == null
-                || !entrada.getPropietarioActual().getId().equals(usuario.getId())) {
+        if (entrada.getPropietarioActualEmail() == null
+                || !entrada.getPropietarioActualEmail().equals(email)) {
             throw new UnauthorizedException("La entrada no pertenece al usuario autenticado");
         }
 
@@ -63,12 +71,12 @@ public class EntradaService {
     }
 
     public EntradaDTO toDto(Entrada entrada) {
+        return toDto(entrada, null);
+    }
+
+    private EntradaDTO toDto(Entrada entrada, Transferencia transferenciaPendiente) {
         Evento evento = entrada.getEvento();
         Sector sector = entrada.getSector();
-
-        var precio = eventoSectorRepository.findByEventoAndSector(evento, sector)
-                .map(es -> es.getPrecio())
-                .orElse(sector.getPrecio());
 
         return new EntradaDTO(
                 entrada.getId(),
@@ -79,12 +87,14 @@ public class EntradaService {
                 evento.getHoraEvento(),
                 evento.getEstadio().getNombreEstadio(),
                 sector.getCodigo(),
-                precio,
+                entrada.getCosto(),
                 entrada.getNumeroAsiento(),
                 entrada.getEstado(),
                 entrada.getCodigoQR(),
                 entrada.getConsumida(),
-                entrada.getFechaConsumo()
+                entrada.getFechaConsumo(),
+                transferenciaPendiente == null ? null : transferenciaPendiente.getId(),
+                transferenciaPendiente == null ? null : transferenciaPendiente.getRemitente().getEmail()
         );
     }
 

@@ -33,21 +33,10 @@ public class Compra {
     
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal montoTotal;
-    
-    @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal costo;
-    
-    @Column(precision = 5, scale = 2)
-    private BigDecimal comision = new BigDecimal("10");
-    
+
     @Column(nullable = false, length = 50)
     private String estado = "PENDIENTE"; // PENDIENTE, CONFIRMADA, PAGA
-    
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "compra_entrada",
-        joinColumns = @JoinColumn(name = "compra_id"),
-        inverseJoinColumns = @JoinColumn(name = "entrada_id")
-    )
+
+    @OneToMany(mappedBy = "compra", fetch = FetchType.LAZY)
     private Set<Entrada> entradas = new HashSet<>();
 }

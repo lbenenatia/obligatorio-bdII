@@ -1,5 +1,6 @@
 package com.mundial2026.controller;
 
+import com.mundial2026.dto.FuncionarioResumenDTO;
 import com.mundial2026.entity.Dispositivo;
 import com.mundial2026.entity.Evento;
 import com.mundial2026.entity.FuncionarioSector;
@@ -19,9 +20,19 @@ public class FuncionarioController {
     @Autowired
     private FuncionarioService funcionarioService;
 
+    @GetMapping
+    public ResponseEntity<List<FuncionarioResumenDTO>> listar() {
+        return ResponseEntity.ok(funcionarioService.listarFuncionarios());
+    }
+
     @GetMapping("/mi-sector")
     public ResponseEntity<List<Sector>> miSector() {
         return ResponseEntity.ok(funcionarioService.obtenerSectoresAsignados(emailAutenticado()));
+    }
+
+    @GetMapping("/{funcionarioId}/sectores")
+    public ResponseEntity<List<Sector>> sectoresDe(@PathVariable Integer funcionarioId) {
+        return ResponseEntity.ok(funcionarioService.obtenerSectoresAsignados(funcionarioId));
     }
 
     @GetMapping("/mi-evento")
@@ -49,8 +60,8 @@ public class FuncionarioController {
 
     @PostMapping("/{funcionarioId}/dispositivo")
     public ResponseEntity<Dispositivo> autorizarDispositivo(
-            @PathVariable Integer funcionarioId, @RequestParam String dispositivoId) {
-        return ResponseEntity.ok(funcionarioService.autorizarDispositivo(funcionarioId, dispositivoId));
+            @PathVariable Integer funcionarioId, @RequestParam String nroVinculacion) {
+        return ResponseEntity.ok(funcionarioService.autorizarDispositivo(funcionarioId, nroVinculacion));
     }
 
     @DeleteMapping("/{funcionarioId}/dispositivo")

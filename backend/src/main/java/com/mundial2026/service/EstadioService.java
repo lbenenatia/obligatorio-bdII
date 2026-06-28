@@ -93,7 +93,7 @@ public class EstadioService {
 
     private EstadioConSectoresResponse toResponse(Estadio estadio) {
         List<SectorRequest> sectores = sectorRepository.findByEstadio(estadio).stream()
-                .map(s -> new SectorRequest(s.getCodigo(), s.getCapMax(), s.getPrecio()))
+                .map(s -> new SectorRequest(s.getId(), s.getCodigo(), s.getCapMax(), s.getPrecio()))
                 .collect(Collectors.toList());
         return new EstadioConSectoresResponse(
                 estadio.getId(), estadio.getNombreEstadio(), estadio.getUbicacion(), sectores);

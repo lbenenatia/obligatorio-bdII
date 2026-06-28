@@ -1,16 +1,19 @@
 package com.mundial2026.controller;
 
 import com.mundial2026.dto.DireccionDTO;
+import com.mundial2026.dto.UsuarioGeneralResumenDTO;
 import com.mundial2026.dto.UsuarioPerfilDTO;
 import com.mundial2026.dto.UsuarioResumenDTO;
 import com.mundial2026.entity.Direccion;
 import com.mundial2026.entity.usuario.Administrador;
 import com.mundial2026.entity.usuario.Funcionario;
 import com.mundial2026.entity.usuario.General;
+import com.mundial2026.entity.usuario.Telefono;
 import com.mundial2026.entity.usuario.Usuario;
 import com.mundial2026.exception.ResourceNotFoundException;
 import com.mundial2026.repository.GeneralRepository;
 import com.mundial2026.repository.UsuarioRepository;
+import com.mundial2026.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +31,9 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping("/me")
     public ResponseEntity<UsuarioPerfilDTO> me() {
@@ -50,10 +56,14 @@ public class UsuarioController {
                     direccion.getPaisDireccion(), direccion.getCodigoPostal());
         }
 
+        List<String> telefonos = usuario.getTelefonos().stream()
+                .map(Telefono::getNumero)
+                .collect(Collectors.toList());
+
         UsuarioPerfilDTO perfil = new UsuarioPerfilDTO(
                 usuario.getId(), usuario.getEmail(), usuario.getNombre(), usuario.getApellido(), rol,
                 usuario.getPaisDocumento(), usuario.getNroDocumento(), usuario.getDocumentoTipo(),
-                usuario.getTelefonos(), direccionDTO);
+                telefonos, direccionDTO);
 
         return ResponseEntity.ok(perfil);
     }
@@ -71,7 +81,28 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioRepository.count());
     }
 
+    @GetMapping("/generales")
+    public ResponseEntity<List<UsuarioGeneralResumenDTO>> listarGenerales() {
+        List<UsuarioGeneralResumenDTO> resultado = usuarioService.listarGenerales().stream()
+                .map(this::toGeneralResumen)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PutMapping("/{id}/verificacion")
+    public ResponseEntity<Void> actualizarVerificacion(
+            @PathVariable Integer id, @RequestParam boolean verificado) {
+        usuarioService.actualizarVerificacion(id, verificado);
+        return ResponseEntity.noContent().build();
+    }
+
     private UsuarioResumenDTO toResumen(General usuario) {
         return new UsuarioResumenDTO(usuario.getId(), usuario.getNombre(), usuario.getApellido(), usuario.getEmail());
+    }
+
+    private UsuarioGeneralResumenDTO toGeneralResumen(General usuario) {
+        return new UsuarioGeneralResumenDTO(
+                usuario.getId(), usuario.getNombre(), usuario.getApellido(), usuario.getEmail(),
+                usuario.getNroDocumento(), usuario.getVerificacion(), usuario.getFechaRegistro());
     }
 }

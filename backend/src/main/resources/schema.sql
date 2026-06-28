@@ -5,7 +5,8 @@
 
 -- Tabla DIRECCION (varios usuarios pueden compartir la misma direccion)
 CREATE TABLE IF NOT EXISTS direccion (
-    nro_direccion INTEGER NOT NULL PRIMARY KEY,
+    id_direccion SERIAL PRIMARY KEY,
+    nro_direccion INTEGER, -- numero de puerta; no todas las direcciones lo tienen
     calle VARCHAR(100) NOT NULL,
     localidad VARCHAR(100) NOT NULL,
     pais_direccion VARCHAR(50) NOT NULL,
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     documento_tipo VARCHAR(50) NOT NULL,
     direccion_id INTEGER,
     tipo_usuario VARCHAR(20) NOT NULL, -- ADMINISTRADOR, FUNCIONARIO, GENERAL
-    FOREIGN KEY (direccion_id) REFERENCES direccion(nro_direccion) ON DELETE SET NULL,
+    FOREIGN KEY (direccion_id) REFERENCES direccion(id_direccion) ON DELETE SET NULL,
     UNIQUE (email, nro_documento),
     CONSTRAINT email_format CHECK (email LIKE '%@%')
 );
@@ -55,15 +56,13 @@ CREATE TABLE IF NOT EXISTS general (
 CREATE TABLE IF NOT EXISTS estadio (
     id SERIAL PRIMARY KEY,
     nombre_estadio VARCHAR(100) NOT NULL,
-    ubicacion VARCHAR(255) NOT NULL,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ubicacion VARCHAR(255) NOT NULL
 );
 
 -- Tabla EQUIPO
 CREATE TABLE IF NOT EXISTS equipo (
     id SERIAL PRIMARY KEY,
-    nombre_equipo VARCHAR(100) NOT NULL UNIQUE,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    nombre_equipo VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- Tabla EVENTO (Partido)
@@ -75,7 +74,6 @@ CREATE TABLE IF NOT EXISTS evento (
     equipo_visitante_id INTEGER NOT NULL,
     fecha_evento DATE NOT NULL,
     hora_evento TIME NOT NULL,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (admin_id) REFERENCES usuario(id) ON DELETE CASCADE,
     FOREIGN KEY (estadio_id) REFERENCES estadio(id) ON DELETE RESTRICT,
     FOREIGN KEY (equipo_local_id) REFERENCES equipo(id) ON DELETE RESTRICT,
@@ -83,14 +81,13 @@ CREATE TABLE IF NOT EXISTS evento (
     CONSTRAINT equipos_diferentes CHECK (equipo_local_id != equipo_visitante_id)
 );
 
--- Tabla SECTOR
+-- Tabla SECTOR (precio y capacidad fijos del sector; no se personalizan por evento)
 CREATE TABLE IF NOT EXISTS sector (
     id SERIAL PRIMARY KEY,
     estadio_id INTEGER NOT NULL,
     codigo CHAR(1) NOT NULL, -- A, B, C, D
     cap_max INTEGER NOT NULL,
     precio DECIMAL(10, 2) NOT NULL,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (estadio_id) REFERENCES estadio(id) ON DELETE CASCADE,
     UNIQUE(estadio_id, codigo),
     CONSTRAINT codigo_valido CHECK (codigo IN ('A', 'B', 'C', 'D')),
@@ -98,12 +95,20 @@ CREATE TABLE IF NOT EXISTS sector (
     CONSTRAINT capacidad_positiva CHECK (cap_max > 0)
 );
 
+-- Tabla TELEFONO (atributo multivaluado de USUARIO)
+CREATE TABLE IF NOT EXISTS telefono (
+    usuario_id INTEGER NOT NULL,
+    numero VARCHAR(30) NOT NULL,
+    PRIMARY KEY (usuario_id, numero),
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE
+);
+
 -- Tabla DISPOSITIVO
 CREATE TABLE IF NOT EXISTS dispositivo (
     id SERIAL PRIMARY KEY,
+    nro_vinculacion VARCHAR(100) UNIQUE NOT NULL,
     autorizado BOOLEAN DEFAULT FALSE,
     funcionario_id INTEGER,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (funcionario_id) REFERENCES funcionario(id) ON DELETE SET NULL
 );
 
@@ -112,7 +117,6 @@ CREATE TABLE IF NOT EXISTS dispositivo (
 CREATE TABLE IF NOT EXISTS funcionario_sector (
     funcionario_id INTEGER NOT NULL,
     sector_id INTEGER NOT NULL,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (funcionario_id, sector_id),
     FOREIGN KEY (funcionario_id) REFERENCES funcionario(id) ON DELETE CASCADE,
     FOREIGN KEY (sector_id) REFERENCES sector(id) ON DELETE CASCADE,
@@ -126,7 +130,6 @@ CREATE TABLE IF NOT EXISTS compra (
     fecha_compra TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     cant_entradas INTEGER NOT NULL,
     monto_total DECIMAL(12, 2) NOT NULL,
-    costo DECIMAL(12, 2) NOT NULL,
     estado VARCHAR(50) DEFAULT 'PENDIENTE', -- PENDIENTE, CONFIRMADA, PAGA
     FOREIGN KEY (usuario_id) REFERENCES general(id) ON DELETE CASCADE,
     CONSTRAINT cant_entradas_valida CHECK (cant_entradas > 0 AND cant_entradas < 6)
@@ -137,11 +140,11 @@ CREATE TABLE IF NOT EXISTS entrada (
     id SERIAL PRIMARY KEY,
     evento_id INTEGER NOT NULL,
     sector_id INTEGER NOT NULL,
-    compra_id INTEGER NOT NULL,
+    compra_id INTEGER,
     numero_asiento INTEGER,
+    costo DECIMAL(10, 2) NOT NULL, -- Precio del sector al momento de generarse la entrada
     comision DECIMAL(5, 2) DEFAULT 10, -- Porcentaje de comisión
     estado VARCHAR(50) DEFAULT 'DISPONIBLE', -- DISPONIBLE, VENDIDA, TRANSFERIDA, CONSUMIDA
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- QR: atributo de la entrada que se regenera cada ~30s mientras la app esta en primer plano
     codigo_qr TEXT,
     fecha_generacion_qr TIMESTAMP,
@@ -152,7 +155,7 @@ CREATE TABLE IF NOT EXISTS entrada (
     propietario_actual_email VARCHAR(100), -- General dueño actual (cambia al transferir)
     FOREIGN KEY (evento_id) REFERENCES evento(id) ON DELETE CASCADE,
     FOREIGN KEY (sector_id) REFERENCES sector(id) ON DELETE RESTRICT,
-    FOREIGN KEY (compra_id) REFERENCES compra(id) ON DELETE CASCADE,
+    FOREIGN KEY (compra_id) REFERENCES compra(id) ON DELETE SET NULL,
     FOREIGN KEY (validado_por) REFERENCES funcionario(id) ON DELETE SET NULL,
     FOREIGN KEY (dispositivo_id) REFERENCES dispositivo(id) ON DELETE SET NULL,
     FOREIGN KEY (propietario_actual_email) REFERENCES usuario(email) ON DELETE SET NULL,
@@ -168,8 +171,7 @@ CREATE TABLE IF NOT EXISTS transferencia (
     fecha_transferencia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     hora_transferencia TIME DEFAULT CURRENT_TIME,
     cant_transferida INTEGER NOT NULL,
-    aprobacion BOOLEAN DEFAULT FALSE,
-    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    aprobacion BOOLEAN,
     FOREIGN KEY (entrada_id) REFERENCES entrada(id) ON DELETE CASCADE,
     FOREIGN KEY (remitente_id) REFERENCES general(id) ON DELETE CASCADE,
     FOREIGN KEY (destinatario_id) REFERENCES general(id) ON DELETE CASCADE,
@@ -192,7 +194,8 @@ CREATE INDEX IF NOT EXISTS idx_entrada_codigo_qr ON entrada(codigo_qr);
 
 -- Comentarios
 COMMENT ON COLUMN usuario.tipo_usuario IS 'ADMINISTRADOR, FUNCIONARIO, GENERAL';
+COMMENT ON COLUMN entrada.costo IS 'Precio del sector al momento de generarse la entrada';
 COMMENT ON COLUMN entrada.comision IS 'Porcentaje de comisión aplicado al costo';
-COMMENT ON COLUMN transferencia.aprobacion IS 'True: aprobada por administrador, False: pendiente';
+COMMENT ON COLUMN transferencia.aprobacion IS 'NULL: pendiente, TRUE: aceptada por el destinatario, FALSE: rechazada';
 COMMENT ON COLUMN entrada.codigo_qr IS 'Código QR vigente; se regenera cada ~30s mientras la app está en primer plano';
 COMMENT ON COLUMN entrada.consumida IS 'True: ya fue escaneada y validada';
