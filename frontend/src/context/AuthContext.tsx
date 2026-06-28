@@ -46,7 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 try {
                     await cargarPerfil();
                 } catch {
-                    await borrarToken();
+                    // No se borra el token acá: si /usuarios/me falló por un problema
+                    // transitorio de red/túnel (no por un 401/403 real), borrarlo
+                    // cerraría la sesión de un token todavía válido. Un 401/403 real ya
+                    // se maneja en api.ts (borra el token y dispara onSesionExpirada).
                     setUsuario(null);
                 }
             }

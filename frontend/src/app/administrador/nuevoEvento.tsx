@@ -3,7 +3,7 @@ import { EventoService } from '@/services/EventoService';
 import { Estadio } from '@/types/estadio';
 import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -12,8 +12,6 @@ import {
     View
 } from 'react-native';
 import Screen from '../screen';
-
-type ValoresSector = { capMax: string; precio: string };
 
 export default function NuevoEvento() {
     const router = useRouter();
@@ -26,8 +24,6 @@ export default function NuevoEvento() {
     const [mostrarEstadios, setMostrarEstadios] = useState(false);
     const [guardando, setGuardando] = useState(false);
 
-    const [valoresSectores, setValoresSectores] = useState<Record<string, ValoresSector>>({});
-
     useEffect(() => {
         EstadioService.listar().then(setEstadios).catch(() => { });
     }, []);
@@ -39,37 +35,6 @@ export default function NuevoEvento() {
     const seleccionarEstadio = (estadio: Estadio) => {
         setEstadioId(estadio.id);
         setMostrarEstadios(false);
-
-        const valores: Record<string, ValoresSector> = {};
-        for (const sector of estadio.sectores) {
-            valores[sector.codigo] = {
-                capMax: String(sector.capMax),
-                precio: String(sector.precio),
-            };
-        }
-        setValoresSectores(valores);
-    };
-
-    // La capacidad de un sector para el evento no puede superar la capacidad máxima
-    // que tiene ese sector en el estadio (no tiene sentido vender más entradas de las que entran).
-    const cambiarCapMax = (codigo: string, texto: string) => {
-        const capMaxEstadio = estadioSeleccionado?.sectores.find(s => s.codigo === codigo)?.capMax ?? 0;
-        const numero = Number(texto || 0);
-        const valorFinal = texto !== '' && numero > capMaxEstadio
-            ? String(capMaxEstadio)
-            : texto;
-
-        setValoresSectores(prev => ({
-            ...prev,
-            [codigo]: { ...prev[codigo], capMax: valorFinal },
-        }));
-    };
-
-    const cambiarPrecio = (codigo: string, texto: string) => {
-        setValoresSectores(prev => ({
-            ...prev,
-            [codigo]: { ...prev[codigo], precio: texto },
-        }));
     };
 
     const guardarEvento = async () => {
@@ -91,11 +56,6 @@ export default function NuevoEvento() {
                 equipoVisitanteNombre,
                 fechaEvento,
                 horaEvento,
-                sectores: Object.entries(valoresSectores).map(([codigo, v]) => ({
-                    codigo: codigo as 'A' | 'B' | 'C' | 'D',
-                    capMax: Number(v.capMax || 0),
-                    precio: Number(v.precio || 0),
-                })),
             });
 
             router.push('/administrador/eventos');
@@ -190,39 +150,16 @@ export default function NuevoEvento() {
                             ))}
 
                         {estadioSeleccionado && (
-                            <>
-                                <View style={styles.capacidadBox}>
-                                    <Text style={styles.capacidadTexto}>
-                                        Ubicación: {estadioSeleccionado.ubicacion}
-                                    </Text>
-                                </View>
-
-                                <Text style={styles.label}>
-                                    Capacidad y precio por sector (para este evento)
+                            <View style={styles.capacidadBox}>
+                                <Text style={styles.capacidadTexto}>
+                                    Ubicación: {estadioSeleccionado.ubicacion}
                                 </Text>
-
                                 {estadioSeleccionado.sectores.map(sector => (
-                                    <React.Fragment key={sector.codigo}>
-                                        <Text style={styles.label}>
-                                            Sector {sector.codigo} (máx. {sector.capMax})
-                                        </Text>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder={`Capacidad Sector ${sector.codigo}`}
-                                            keyboardType="numeric"
-                                            value={valoresSectores[sector.codigo]?.capMax ?? ''}
-                                            onChangeText={texto => cambiarCapMax(sector.codigo, texto)}
-                                        />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder={`Precio Sector ${sector.codigo}`}
-                                            keyboardType="numeric"
-                                            value={valoresSectores[sector.codigo]?.precio ?? ''}
-                                            onChangeText={texto => cambiarPrecio(sector.codigo, texto)}
-                                        />
-                                    </React.Fragment>
+                                    <Text key={sector.codigo} style={styles.capacidadTexto}>
+                                        Sector {sector.codigo}: {sector.capMax} entradas - ${sector.precio}
+                                    </Text>
                                 ))}
-                            </>
+                            </View>
                         )}
 
                         <TouchableOpacity

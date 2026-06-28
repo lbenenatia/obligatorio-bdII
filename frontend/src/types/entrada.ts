@@ -13,4 +13,6 @@ export interface Entrada {
     codigoQR: string | null;
     consumida: boolean;
     fechaConsumo: string | null;
+    transferenciaPendienteId?: number | null;
+    remitenteEmail?: string | null;
 }

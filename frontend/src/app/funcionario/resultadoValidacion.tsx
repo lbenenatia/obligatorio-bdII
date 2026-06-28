@@ -25,6 +25,7 @@ export default function ResultadoValidacion() {
     const esValida = estado === 'valida';
     const esInvalida = estado === 'invalida';
     const esUsada = estado === 'usada';
+    const esNoAutorizado = estado === 'no_autorizado';
 
     return (
         <View
@@ -33,6 +34,7 @@ export default function ResultadoValidacion() {
                 esValida && { backgroundColor: '#DCFCE7' },
                 esInvalida && { backgroundColor: '#FEE2E2' },
                 esUsada && { backgroundColor: '#FEF3C7' },
+                esNoAutorizado && { backgroundColor: '#E0E7FF' },
             ]}
         >
 
@@ -43,11 +45,13 @@ export default function ResultadoValidacion() {
                     esValida && { backgroundColor: '#22C55E' },
                     esInvalida && { backgroundColor: '#EF4444' },
                     esUsada && { backgroundColor: '#F59E0B' },
+                    esNoAutorizado && { backgroundColor: '#4F46E5' },
                 ]}
             >
                 {esValida && <Ionicons name="checkmark" size={60} color="#fff" />}
                 {esInvalida && <Ionicons name="close" size={60} color="#fff" />}
                 {esUsada && <Ionicons name="warning" size={60} color="#fff" />}
+                {esNoAutorizado && <Ionicons name="lock-closed" size={60} color="#fff" />}
             </View>
 
             {/* TITULO */}
@@ -55,6 +59,7 @@ export default function ResultadoValidacion() {
                 {esValida && 'Entrada válida'}
                 {esInvalida && 'Entrada inválida'}
                 {esUsada && 'Entrada ya utilizada'}
+                {esNoAutorizado && 'Dispositivo no autorizado'}
             </Text>
 
             {/* SUBMENSAJE */}
@@ -62,6 +67,7 @@ export default function ResultadoValidacion() {
                 {esValida && 'La entrada es válida y puede ingresar al evento.'}
                 {esInvalida && 'El código QR no es válido. Verifica e intenta nuevamente.'}
                 {esUsada && 'Esta entrada ya fue utilizada anteriormente.'}
+                {esNoAutorizado && 'Este dispositivo no está autorizado para validar entradas.'}
             </Text>
 
             {/* CARD */}

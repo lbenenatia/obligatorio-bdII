@@ -1,7 +1,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
     Dimensions,
     Image,
@@ -21,6 +21,7 @@ const { height } = Dimensions.get('window');
 export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const passwordRef = useRef<TextInput>(null);
     const router = useRouter();
     const { login } = useAuth();
     const iniciarSesion = async () => {
@@ -86,25 +87,29 @@ export default function LoginScreen() {
                                 autoCapitalize="none"
                                 value={email}
                                 onChangeText={setEmail}
+                                returnKeyType="next"
+                                blurOnSubmit={false}
+                                onSubmitEditing={() => passwordRef.current?.focus()}
                             />
                         </View>
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Contraseña</Text>
                             <TextInput
+                                ref={passwordRef}
                                 style={styles.input}
                                 placeholder="••••••••"
                                 placeholderTextColor="#B3B3B3"
                                 secureTextEntry
                                 value={password}
                                 onChangeText={setPassword}
+                                returnKeyType="done"
+                                onSubmitEditing={iniciarSesion}
                             />
                         </View>
                     </View>
 
                     <View style={styles.bottomContainer}>
-                        <Text style={styles.topText}>¿Olvidaste tu contraseña?</Text>
-
                         <TouchableOpacity
                             style={styles.button}
                             onPress={iniciarSesion}
@@ -113,6 +118,8 @@ export default function LoginScreen() {
                                 Iniciar sesión
                             </Text>
                         </TouchableOpacity>
+
+                        <Text style={styles.topText}>¿Olvidaste tu contraseña?</Text>
 
                         <Text style={styles.bottomText}>
                             ¿No tenés cuenta?{' '}
@@ -204,6 +211,7 @@ const styles = StyleSheet.create({
     },
 
     topText: {
+        marginTop: 18,
         fontSize: 14,
         color: '#1565FF',
     },

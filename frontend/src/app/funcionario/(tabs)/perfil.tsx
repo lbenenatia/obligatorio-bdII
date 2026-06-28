@@ -1,12 +1,35 @@
 import { useAuth } from '@/context/AuthContext';
+import { FuncionarioService } from '@/services/FuncionarioService';
+import { obtenerNroVinculacion } from '@/utils/dispositivo';
 import { FontAwesome } from '@expo/vector-icons';
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Screen from '../../screen';
 
 export default function Perfil() {
     const router = useRouter();
     const { usuario, logout } = useAuth();
+    const [nroVinculacion, setNroVinculacion] = useState<string | null>(null);
+    const [dispositivoAutorizado, setDispositivoAutorizado] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            (async () => {
+                const idLocal = await obtenerNroVinculacion();
+                setNroVinculacion(idLocal);
+
+                try {
+                    const miDispositivo = await FuncionarioService.miDispositivo();
+                    setDispositivoAutorizado(
+                        !!miDispositivo && miDispositivo.autorizado && miDispositivo.nroVinculacion === idLocal
+                    );
+                } catch {
+                    setDispositivoAutorizado(false);
+                }
+            })();
+        }, [])
+    );
 
     if (!usuario) {
         return (
@@ -53,7 +76,7 @@ export default function Perfil() {
                         <View style={styles.block}>
                             <Text style={styles.label}>Teléfonos</Text>
                             <Text style={styles.value}>
-                                {usuario.telefonos || 'Sin teléfono'}
+                                {usuario.telefonos?.join(', ') || 'Sin teléfono'}
                             </Text>
                         </View>
 
@@ -79,6 +102,18 @@ export default function Perfil() {
                             <Text style={styles.subvalue}>
                                 CP: {usuario.direccion?.codigoPostal}
                             </Text>
+                        </View>
+
+                        {/* DISPOSITIVO */}
+                        <View style={[styles.block, { borderBottomWidth: 0, marginBottom: 0 }]}>
+                            <Text style={styles.label}>Dispositivo de escaneo</Text>
+                            <Text style={styles.value}>
+                                {dispositivoAutorizado ? '✅ Autorizado' : '⛔ No autorizado'}
+                            </Text>
+                            <Text style={styles.subvalue}>
+                                Si no está autorizado, pasale este ID a un administrador:
+                            </Text>
+                            <Text style={styles.idDispositivo}>{nroVinculacion}</Text>
                         </View>
 
                     </View>
@@ -161,6 +196,18 @@ export default function Perfil() {
         fontSize: 14,
         color: '#374151',
         marginTop: 2,
+    },
+
+    idDispositivo: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#051F3B',
+        backgroundColor: '#F3F4F6',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        marginTop: 6,
+        alignSelf: 'flex-start',
     },
 
     botonCerrarSesion: {

@@ -1,5 +1,4 @@
 import { api } from '@/services/api';
-import { Sector } from '@/types/estadio';
 import { DisponibilidadSector, Evento } from '@/types/evento';
 
 export interface EventoRequest {
@@ -8,8 +7,6 @@ export interface EventoRequest {
     equipoVisitanteNombre: string;
     fechaEvento: string; // YYYY-MM-DD
     horaEvento: string; // HH:mm
-    // Override opcional de capacidad/precio por sector para este evento (si no se manda, usa los del estadio)
-    sectores?: Sector[];
 }
 
 export const EventoService = {

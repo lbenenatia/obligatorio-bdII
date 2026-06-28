@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     StyleSheet,
     Text,
@@ -8,17 +8,43 @@ import {
 } from 'react-native';
 
 import { EntradaService } from '@/services/EntradaService';
+import { TransferenciaService } from '@/services/TransferenciaService';
 import { Entrada } from '@/types/entrada';
+import { mostrarAlerta } from '@/utils/alert';
 import Screen from '../screen';
 
 export default function MisEntradas() {
     const [tab, setTab] = useState<'proximos' | 'historial'>('proximos');
     const [entradas, setEntradas] = useState<Entrada[]>([]);
+    const [resolviendoId, setResolviendoId] = useState<number | null>(null);
     const router = useRouter();
 
-    useEffect(() => {
+    const cargarEntradas = useCallback(() => {
         EntradaService.misEntradas().then(setEntradas).catch(() => { });
     }, []);
+
+    useEffect(() => {
+        cargarEntradas();
+    }, [cargarEntradas]);
+
+    const resolverTransferencia = async (transferenciaId: number, accion: 'aceptar' | 'rechazar') => {
+        setResolviendoId(transferenciaId);
+        try {
+            if (accion === 'aceptar') {
+                await TransferenciaService.aceptar(transferenciaId);
+            } else {
+                await TransferenciaService.rechazar(transferenciaId);
+            }
+            cargarEntradas();
+        } catch (error) {
+            mostrarAlerta(
+                'Error',
+                error instanceof Error ? error.message : 'No se pudo procesar la transferencia'
+            );
+        } finally {
+            setResolviendoId(null);
+        }
+    };
 
     const entradasActivas = entradas.filter(e => e.estado !== 'CONSUMIDA');
     const entradasUsadas = entradas.filter(e => e.estado === 'CONSUMIDA');
@@ -71,47 +97,84 @@ export default function MisEntradas() {
                                 No tienes entradas próximas
                             </Text>
                         ) : (
-                            entradasActivas.map(e => (
-                                <TouchableOpacity
-                                    key={e.id}
-                                    style={styles.ticketCard}
-                                    onPress={() =>
-                                        router.push({
-                                            pathname: '/entrada',
-                                            params: {
-                                                id: e.id.toString(),
-                                                equipoLocal: e.equipoLocal,
-                                                equipoVisitante: e.equipoVisitante,
-                                                fecha: e.fechaEvento,
-                                                time: e.horaEvento,
-                                                estadio: e.estadioNombre,
-                                                sector: e.sectorCodigo,
-                                                asiento: String(e.numeroAsiento),
-                                            },
-                                        })
-                                    }
-                                >
-                                    <View style={styles.cardHeader}>
-                                        <Text style={styles.badge}>PRÓXIMO</Text>
-                                    </View>
-
-                                    <Text style={styles.matchTitle}>
-                                        {e.equipoLocal} vs {e.equipoVisitante}
-                                    </Text>
-
-                                    <Text style={styles.info}>📅 {e.fechaEvento}</Text>
-                                    <Text style={styles.info}>🕒 {e.horaEvento}</Text>
-                                    <Text style={styles.info}>📍 {e.estadioNombre}</Text>
-
-                                    <View style={styles.bottomRow}>
-                                        <View style={styles.status}>
-                                            <Text style={styles.statusText}>Activa</Text>
+                            entradasActivas.map(e =>
+                                e.transferenciaPendienteId ? (
+                                    <View key={e.id} style={[styles.ticketCard, styles.pendingCard]}>
+                                        <View style={styles.cardHeader}>
+                                            <Text style={[styles.badge, styles.pendingBadge]}>
+                                                TRANSFERENCIA PENDIENTE
+                                            </Text>
                                         </View>
 
-                                        <Text style={styles.arrow}>›</Text>
+                                        <Text style={styles.matchTitle}>
+                                            {e.equipoLocal} vs {e.equipoVisitante}
+                                        </Text>
+
+                                        <Text style={styles.info}>📅 {e.fechaEvento}</Text>
+                                        <Text style={styles.info}>🕒 {e.horaEvento}</Text>
+                                        <Text style={styles.info}>📍 {e.estadioNombre}</Text>
+                                        <Text style={styles.info}>👤 De: {e.remitenteEmail}</Text>
+
+                                        <View style={styles.pendingActions}>
+                                            <TouchableOpacity
+                                                style={styles.rejectButton}
+                                                disabled={resolviendoId === e.transferenciaPendienteId}
+                                                onPress={() => resolverTransferencia(e.transferenciaPendienteId!, 'rechazar')}
+                                            >
+                                                <Text style={styles.rejectButtonText}>Rechazar</Text>
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity
+                                                style={styles.acceptButton}
+                                                disabled={resolviendoId === e.transferenciaPendienteId}
+                                                onPress={() => resolverTransferencia(e.transferenciaPendienteId!, 'aceptar')}
+                                            >
+                                                <Text style={styles.acceptButtonText}>Aceptar</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                </TouchableOpacity>
-                            ))
+                                ) : (
+                                    <TouchableOpacity
+                                        key={e.id}
+                                        style={styles.ticketCard}
+                                        onPress={() =>
+                                            router.push({
+                                                pathname: '/entrada',
+                                                params: {
+                                                    id: e.id.toString(),
+                                                    equipoLocal: e.equipoLocal,
+                                                    equipoVisitante: e.equipoVisitante,
+                                                    fecha: e.fechaEvento,
+                                                    time: e.horaEvento,
+                                                    estadio: e.estadioNombre,
+                                                    sector: e.sectorCodigo,
+                                                    asiento: String(e.numeroAsiento),
+                                                },
+                                            })
+                                        }
+                                    >
+                                        <View style={styles.cardHeader}>
+                                            <Text style={styles.badge}>PRÓXIMO</Text>
+                                        </View>
+
+                                        <Text style={styles.matchTitle}>
+                                            {e.equipoLocal} vs {e.equipoVisitante}
+                                        </Text>
+
+                                        <Text style={styles.info}>📅 {e.fechaEvento}</Text>
+                                        <Text style={styles.info}>🕒 {e.horaEvento}</Text>
+                                        <Text style={styles.info}>📍 {e.estadioNombre}</Text>
+
+                                        <View style={styles.bottomRow}>
+                                            <View style={styles.status}>
+                                                <Text style={styles.statusText}>Activa</Text>
+                                            </View>
+
+                                            <Text style={styles.arrow}>›</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                )
+                            )
                         ))}
                     {tab === 'historial' &&
                         (entradasUsadas.length === 0 ? (
@@ -231,6 +294,47 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.08,
         shadowRadius: 8,
+    },
+
+    pendingCard: {
+        borderWidth: 2,
+        borderColor: '#F59E0B',
+    },
+
+    pendingBadge: {
+        backgroundColor: '#F59E0B',
+    },
+
+    pendingActions: {
+        flexDirection: 'row',
+        marginTop: 15,
+        gap: 10,
+    },
+
+    acceptButton: {
+        flex: 1,
+        backgroundColor: '#16A34A',
+        paddingVertical: 10,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+
+    acceptButtonText: {
+        color: '#FFFFFF',
+        fontWeight: 'bold',
+    },
+
+    rejectButton: {
+        flex: 1,
+        backgroundColor: '#FEE2E2',
+        paddingVertical: 10,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+
+    rejectButtonText: {
+        color: '#DC2626',
+        fontWeight: 'bold',
     },
 
     cardHeader: {

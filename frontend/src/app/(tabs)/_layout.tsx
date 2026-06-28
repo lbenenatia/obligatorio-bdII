@@ -61,6 +61,20 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
+                name="transferencias"
+                options={{
+                    title: 'Transferencias',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons
+                            name="swap-horizontal"
+                            size={size}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
                 name="perfil"
                 options={{
                     title: 'Perfil',

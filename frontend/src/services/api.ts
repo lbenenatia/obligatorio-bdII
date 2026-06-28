@@ -46,12 +46,15 @@ export function setOnSesionExpirada(callback: (() => void) | null) {
 
 async function apiFetch<T>(
     path: string,
-    options: { method?: string; body?: unknown } = {}
+    options: { method?: string; body?: unknown; skipAuthLogout?: boolean } = {}
 ): Promise<T> {
     const token = await obtenerToken();
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
+        // Sin esto, ngrok devuelve una página HTML de aviso en vez de la respuesta real
+        // cuando el backend está expuesto vía un túnel free tier.
+        'ngrok-skip-browser-warning': 'true',
     };
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -75,7 +78,7 @@ async function apiFetch<T>(
     }
 
     if (!response.ok) {
-        if (token && (response.status === 401 || response.status === 403)) {
+        if (token && !options.skipAuthLogout && (response.status === 401 || response.status === 403)) {
             await borrarToken();
             onSesionExpirada?.();
             throw new Error('Tu sesión expiró. Por favor, iniciá sesión nuevamente.');
@@ -94,8 +97,11 @@ async function apiFetch<T>(
 }
 
 export const api = {
-    get: <T>(path: string) => apiFetch<T>(path),
-    post: <T>(path: string, body?: unknown) => apiFetch<T>(path, { method: 'POST', body }),
-    put: <T>(path: string, body?: unknown) => apiFetch<T>(path, { method: 'PUT', body }),
-    del: <T>(path: string) => apiFetch<T>(path, { method: 'DELETE' }),
+    get: <T>(path: string, opts?: { skipAuthLogout?: boolean }) => apiFetch<T>(path, opts),
+    post: <T>(path: string, body?: unknown, opts?: { skipAuthLogout?: boolean }) =>
+        apiFetch<T>(path, { method: 'POST', body, ...opts }),
+    put: <T>(path: string, body?: unknown, opts?: { skipAuthLogout?: boolean }) =>
+        apiFetch<T>(path, { method: 'PUT', body, ...opts }),
+    del: <T>(path: string, opts?: { skipAuthLogout?: boolean }) =>
+        apiFetch<T>(path, { method: 'DELETE', ...opts }),
 };

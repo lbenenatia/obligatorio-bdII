@@ -114,7 +114,7 @@ export default function RegisterScreen() {
                 nroDireccion: Number(numeroPuerta) || 0,
                 codigoPostal: cp,
 
-                telefonos: telefonos.join(', '),
+                telefonos,
             });
 
             mostrarAlerta('Éxito', 'Cuenta creada correctamente', () => router.replace('/login'));
@@ -180,6 +180,8 @@ export default function RegisterScreen() {
                                     placeholder="Número"
                                     value={numeroDocumento}
                                     onChangeText={setNumeroDocumento}
+                                    returnKeyType="done"
+                                    onSubmitEditing={crearCuenta}
                                 />
                             </View>
                         </View>
@@ -199,6 +201,8 @@ export default function RegisterScreen() {
                             placeholder="Localidad"
                             value={localidad}
                             onChangeText={setLocalidad}
+                            returnKeyType="done"
+                            onSubmitEditing={crearCuenta}
                         />
 
                         <TextInput
@@ -206,6 +210,8 @@ export default function RegisterScreen() {
                             placeholder="Calle"
                             value={calle}
                             onChangeText={setCalle}
+                            returnKeyType="done"
+                            onSubmitEditing={crearCuenta}
                         />
 
                         <View style={styles.row}>
@@ -215,6 +221,8 @@ export default function RegisterScreen() {
                                     placeholder="Número"
                                     value={numeroPuerta}
                                     onChangeText={setNumeroPuerta}
+                                    returnKeyType="done"
+                                    onSubmitEditing={crearCuenta}
                                 />
                             </View>
 
@@ -224,6 +232,8 @@ export default function RegisterScreen() {
                                     placeholder="CP"
                                     value={cp}
                                     onChangeText={setCp}
+                                    returnKeyType="done"
+                                    onSubmitEditing={crearCuenta}
                                 />
                             </View>
                         </View>
@@ -240,6 +250,8 @@ export default function RegisterScreen() {
                                 keyboardType="phone-pad"
                                 value={t}
                                 onChangeText={text => cambiarTelefono(i, text)}
+                                returnKeyType="done"
+                                onSubmitEditing={crearCuenta}
                             />
                         ))}
 

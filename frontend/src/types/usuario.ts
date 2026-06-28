@@ -19,7 +19,7 @@ export interface Usuario {
     nroDocumento: string;
     documentoTipo: string;
 
-    telefonos: string;
+    telefonos: string[];
     direccion: Direccion | null;
 }
 
@@ -28,4 +28,14 @@ export interface UsuarioResumen {
     nombre: string;
     apellido: string;
     email: string;
+}
+
+export interface UsuarioGeneralResumen {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+    nroDocumento: string;
+    verificacion: boolean;
+    fechaRegistro: string;
 }

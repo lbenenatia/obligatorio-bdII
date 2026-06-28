@@ -3,7 +3,6 @@ export interface Compra {
     fechaCompra: string;
     cantEntradas: number;
     montoTotal: number;
-    costo: number;
     comision: number;
     estado: 'PENDIENTE' | 'CONFIRMADA' | 'PAGA';
     // El back devuelve la entidad Entrada completa; del front solo usamos el id

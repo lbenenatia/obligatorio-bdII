@@ -9,7 +9,7 @@ import {
 
 import { mostrarAlerta } from '@/utils/alert';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Screen from './screen';
 
 export default function RegisterScreen() {
@@ -17,6 +17,9 @@ export default function RegisterScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const emailRef = useRef<TextInput>(null);
+    const passwordRef = useRef<TextInput>(null);
+    const confirmPasswordRef = useRef<TextInput>(null);
     const router = useRouter();
     const emailValido = /\S+@\S+\.\S+/;
     const continuar = () => {
@@ -95,40 +98,54 @@ export default function RegisterScreen() {
                             placeholder="Nombre completo"
                             value={nombre}
                             onChangeText={setNombre}
+                            returnKeyType="next"
+                            blurOnSubmit={false}
+                            onSubmitEditing={() => emailRef.current?.focus()}
                         />
                     </View>
 
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Correo electrónico</Text>
                         <TextInput
+                            ref={emailRef}
                             style={styles.input}
                             placeholder="Correo electrónico"
                             keyboardType="email-address"
                             autoCapitalize="none"
                             value={email}
                             onChangeText={setEmail}
+                            returnKeyType="next"
+                            blurOnSubmit={false}
+                            onSubmitEditing={() => passwordRef.current?.focus()}
                         />
                     </View>
 
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Contraseña</Text>
                         <TextInput
+                            ref={passwordRef}
                             style={styles.input}
                             placeholder="Mínimo 8 caracteres"
                             secureTextEntry
                             value={password}
                             onChangeText={setPassword}
+                            returnKeyType="next"
+                            blurOnSubmit={false}
+                            onSubmitEditing={() => confirmPasswordRef.current?.focus()}
                         />
                     </View>
 
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Confirmar contraseña</Text>
                         <TextInput
+                            ref={confirmPasswordRef}
                             style={styles.input}
                             placeholder="Repetir contraseña"
                             secureTextEntry
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
+                            returnKeyType="done"
+                            onSubmitEditing={continuar}
                         />
                     </View>
                 </View>

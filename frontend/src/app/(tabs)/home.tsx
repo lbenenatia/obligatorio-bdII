@@ -1,8 +1,9 @@
 import { useAuth } from '@/context/AuthContext';
 import { EventoService } from '@/services/EventoService';
 import { Evento } from '@/types/evento';
-import { hoyLocalISO } from '@/utils/fecha';
-import { useEffect, useState } from 'react';
+import { yaPaso } from '@/utils/fecha';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Screen from '../screen';
@@ -12,20 +13,25 @@ export default function HomeScreen() {
     const [proximoEvento, setProximoEvento] =
         useState<Evento | null>(null);
 
-    useEffect(() => {
-        const cargarEvento = async () => {
-            const eventos = await EventoService.listar();
-            const hoy = hoyLocalISO();
+    useFocusEffect(
+        useCallback(() => {
+            const cargarEvento = async () => {
+                const eventos = await EventoService.listar();
 
-            const proximos = eventos
-                .filter(e => e.fechaEvento >= hoy)
-                .sort((a, b) => a.fechaEvento.localeCompare(b.fechaEvento));
+                const proximos = eventos
+                    .filter(e => !yaPaso(e.fechaEvento, e.horaEvento))
+                    .sort((a, b) =>
+                        a.fechaEvento === b.fechaEvento
+                            ? a.horaEvento.localeCompare(b.horaEvento)
+                            : a.fechaEvento.localeCompare(b.fechaEvento)
+                    );
 
-            setProximoEvento(proximos[0] ?? null);
-        };
+                setProximoEvento(proximos[0] ?? null);
+            };
 
-        cargarEvento().catch(() => { });
-    }, []);
+            cargarEvento().catch(() => { });
+        }, [])
+    );
     return (
         <SafeAreaView style={styles.container}>
             <Screen backgroundColor="#051F3B">

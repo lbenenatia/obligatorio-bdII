@@ -33,7 +33,7 @@ export default function Perfil() {
                         <View style={styles.block}>
                             <Text style={styles.label}>Teléfono</Text>
                             <Text style={styles.value}>
-                                {usuario?.telefonos || '-'}
+                                {usuario?.telefonos?.join(', ') || '-'}
                             </Text>
                         </View>
 

@@ -73,7 +73,7 @@ export default function Perfil() {
                     <Text style={styles.cardTitulo}>Dispositivo</Text>
 
                     <Text style={styles.cardValor}>
-                        {dispositivo?.dispositivoId ?? 'Sin dispositivo vinculado'}
+                        {dispositivo?.nroVinculacion ?? 'Sin dispositivo vinculado'}
                     </Text>
 
                     {dispositivo && (

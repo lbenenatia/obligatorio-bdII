@@ -10,6 +10,16 @@ export interface SectorAsignado {
 
 export interface DispositivoAsignado {
     id: number;
-    dispositivoId: string;
+    nroVinculacion: string;
     autorizado: boolean;
+}
+
+export interface FuncionarioResumen {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+    legajo: string;
+    nroVinculacion: string | null;
+    dispositivoAutorizado: boolean;
 }

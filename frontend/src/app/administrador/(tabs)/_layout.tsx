@@ -61,6 +61,34 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
+                name="funcionarios"
+                options={{
+                    title: 'Funcionarios',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons
+                            name="people"
+                            size={size}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
+                name="usuarios"
+                options={{
+                    title: 'Usuarios',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons
+                            name="shield-checkmark"
+                            size={size}
+                            color={color}
+                        />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
                 name="perfil"
                 options={{
                     title: 'Perfil',

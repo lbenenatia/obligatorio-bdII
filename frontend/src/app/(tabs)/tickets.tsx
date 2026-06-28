@@ -1,6 +1,6 @@
 import { EventoService } from '@/services/EventoService';
 import { Evento } from '@/types/evento';
-import { hoyLocalISO } from '@/utils/fecha';
+import { hoyLocalISO, yaPaso } from '@/utils/fecha';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -32,6 +32,8 @@ export default function TicketsScreen() {
 
     const filteredTickets = useMemo(() => {
         return eventos.filter((t) => {
+            if (yaPaso(t.fechaEvento, t.horaEvento)) return false;
+
             const partido = `${t.equipoLocal.nombreEquipo} vs ${t.equipoVisitante.nombreEquipo}`;
 
             const matchSearch = partido

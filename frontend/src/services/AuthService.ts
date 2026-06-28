@@ -13,7 +13,7 @@ export interface RegistroGeneralRequest {
     paisDireccion: string;
     nroDireccion: number;
     codigoPostal: string;
-    telefonos: string;
+    telefonos: string[];
 }
 
 export const AuthService = {

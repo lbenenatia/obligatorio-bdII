@@ -23,7 +23,7 @@ const estiloInputFechaWeb: React.CSSProperties = {
     paddingLeft: 15,
     paddingRight: 15,
     borderRadius: 10,
-    width: '90%',
+    width: '100%',
     border: 'none',
     outline: 'none',
     fontSize: 14,
@@ -144,13 +144,13 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#051F3B',
         paddingTop: 60,
+        paddingHorizontal: 20,
     },
 
     title: {
         fontSize: 22,
         fontWeight: '700',
         color: '#fff',
-        paddingHorizontal: 20,
         marginBottom: 10,
     },
 
@@ -158,14 +158,14 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         backgroundColor: '#fff',
-        borderTopLeftRadius: 25,
-        borderTopRightRadius: 25,
+        borderRadius: 25,
         paddingTop: 15,
+        paddingHorizontal: 20,
         alignItems: 'center',
     },
 
     filtroWrapper: {
-        width: '90%',
+        width: '100%',
     },
 
     filtro: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 15,
         borderRadius: 10,
-        width: '90%',
+        width: '100%',
     },
 
     filtroTexto: {

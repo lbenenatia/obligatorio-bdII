@@ -49,7 +49,7 @@ export default function Perfil() {
                         <View style={styles.block}>
                             <Text style={styles.label}>Teléfonos</Text>
                             <Text style={styles.value}>
-                                {usuario.telefonos || 'Sin teléfono'}
+                                {usuario.telefonos?.join(', ') || 'Sin teléfono'}
                             </Text>
                         </View>
 

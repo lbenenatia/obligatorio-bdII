@@ -1,11 +1,19 @@
 import { useAuth } from '@/context/AuthContext';
+import { EntradaService } from '@/services/EntradaService';
 import { QRService } from '@/services/QRService';
 import { mostrarAlerta } from '@/utils/alert';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Screen from './screen';
+
+// Cada cuánto se revisa si la entrada ya fue consumida (más seguido que el refresco
+// del QR, así el usuario se entera al toque y no tiene que esperar hasta 30s).
+const INTERVALO_CHEQUEO_CONSUMIDA_MS = 4000;
+// Tiempo que se muestra el cartel "Entrada validada" antes de volver a la lista.
+const DEMORA_ANTES_DE_VOLVER_MS = 2500;
 
 type EntradaParams = {
     id: string;
@@ -35,15 +43,39 @@ export default function EntradaScreen() {
 
     const [seconds, setSeconds] = useState(30);
     const [qrValue, setQrValue] = useState<string | null>(null);
+    const [consumida, setConsumida] = useState(false);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const chequeoRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const consumidaManejadaRef = useRef(false);
 
     // Evita refrescar el QR si la sesión se cerró o la app no está en primer plano
     // (sino se sigue pegando al back en segundo plano o ya deslogueado, y tira 403).
     const enPrimerPlanoRef = useRef(AppState.currentState === 'active');
 
+    // Se llama tanto desde la regeneración del QR como del chequeo rápido: cualquiera
+    // de los dos que se entere primero de que se consumió, frena todo y vuelve a la
+    // lista de entradas (sin esperar a que el usuario recargue manualmente).
+    const marcarConsumida = useCallback(() => {
+        if (consumidaManejadaRef.current) return;
+        consumidaManejadaRef.current = true;
+
+        setConsumida(true);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        if (chequeoRef.current) clearInterval(chequeoRef.current);
+
+        setTimeout(() => {
+            router.replace('/misEntradas');
+        }, DEMORA_ANTES_DE_VOLVER_MS);
+    }, [router]);
+
     const generarNuevoQR = async () => {
         if (!id || !usuario || usuario.rol !== 'GENERAL' || !enPrimerPlanoRef.current) return;
         try {
             const entrada = await QRService.generar(Number(id));
+            if (entrada.consumida) {
+                marcarConsumida();
+                return;
+            }
             setQrValue(entrada.codigoQR ?? `entrada-${id}`);
         } catch (error) {
             mostrarAlerta(
@@ -69,6 +101,8 @@ export default function EntradaScreen() {
         useCallback(() => {
             if (!usuario || usuario.rol !== 'GENERAL') return;
 
+            consumidaManejadaRef.current = false;
+            setConsumida(false);
             generarNuevoQR();
 
             const interval = setInterval(() => {
@@ -80,8 +114,36 @@ export default function EntradaScreen() {
                     return prev - 1;
                 });
             }, 1000);
+            intervalRef.current = interval;
 
             return () => clearInterval(interval);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [id, usuario])
+    );
+
+    // Chequeo rápido e independiente del refresco del QR (que es cada 30s): así el
+    // usuario se entera de que el funcionario la validó casi al instante, en vez de
+    // tener que esperar al próximo ciclo de regeneración del código.
+    useFocusEffect(
+        useCallback(() => {
+            if (!id || !usuario || usuario.rol !== 'GENERAL') return;
+
+            const verificarConsumida = async () => {
+                if (!enPrimerPlanoRef.current) return;
+                try {
+                    const entradaActual = await EntradaService.obtener(Number(id));
+                    if (entradaActual.consumida) {
+                        marcarConsumida();
+                    }
+                } catch {
+                    // Falla transitoria de red: se reintenta en el próximo chequeo.
+                }
+            };
+
+            const chequeo = setInterval(verificarConsumida, INTERVALO_CHEQUEO_CONSUMIDA_MS);
+            chequeoRef.current = chequeo;
+
+            return () => clearInterval(chequeo);
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [id, usuario])
     );
@@ -122,20 +184,36 @@ export default function EntradaScreen() {
 
                         <View style={styles.divider} />
 
-                        <View style={styles.qrContainer}>
-                            {qrValue && <QRCode value={qrValue} size={110} />}
-                        </View>
-
-                        <View style={styles.timerContainer}>
-                            <Text style={styles.refreshIcon}>↻</Text>
-
-                            <Text style={styles.timerText}>
-                                El código QR se actualiza en:{' '}
-                                <Text style={styles.timerBold}>
-                                    00:{seconds < 10 ? `0${seconds}` : seconds}
+                        {consumida ? (
+                            <View style={styles.consumidaContainer}>
+                                <View style={styles.consumidaIcono}>
+                                    <Ionicons name="checkmark" size={40} color="#fff" />
+                                </View>
+                                <Text style={styles.consumidaTexto}>
+                                    Entrada validada
                                 </Text>
-                            </Text>
-                        </View>
+                                <Text style={styles.consumidaSubtexto}>
+                                    Ya ingresaste al evento con esta entrada.
+                                </Text>
+                            </View>
+                        ) : (
+                            <>
+                                <View style={styles.qrContainer}>
+                                    {qrValue && <QRCode value={qrValue} size={110} />}
+                                </View>
+
+                                <View style={styles.timerContainer}>
+                                    <Text style={styles.refreshIcon}>↻</Text>
+
+                                    <Text style={styles.timerText}>
+                                        El código QR se actualiza en:{' '}
+                                        <Text style={styles.timerBold}>
+                                            00:{seconds < 10 ? `0${seconds}` : seconds}
+                                        </Text>
+                                    </Text>
+                                </View>
+                            </>
+                        )}
                     </View>
                 </View>
 
@@ -217,6 +295,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         alignItems: 'center',
         elevation: 8,
+        overflow: 'hidden',
     },
 
     cardLogo: {
@@ -249,7 +328,8 @@ const styles = StyleSheet.create({
     },
 
     divider: {
-        width: '120%',
+        width: '100%',
+        marginHorizontal: -35,
         height: 1,
         backgroundColor: '#BDBDBD',
         marginBottom: 12,
@@ -258,6 +338,35 @@ const styles = StyleSheet.create({
     qrContainer: {
         alignItems: 'center',
         justifyContent: 'center',
+    },
+
+    consumidaContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+    },
+
+    consumidaIcono: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        backgroundColor: '#22C55E',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+
+    consumidaTexto: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#000',
+        marginBottom: 6,
+    },
+
+    consumidaSubtexto: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
     },
 
     timerContainer: {
